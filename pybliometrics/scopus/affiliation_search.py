@@ -2,9 +2,13 @@ from collections import namedtuple
 from typing import Optional, Union
 
 from pybliometrics.superclasses import Search
-from pybliometrics.utils import check_integrity, check_parameter_value, \
-    check_field_consistency, html_unescape, make_int_if_possible, \
-    make_search_summary
+from pybliometrics.utils import (
+    check_field_consistency,
+    check_integrity,
+    check_parameter_value,
+    html_unescape,
+    make_search_summary,
+)
 
 
 class AffiliationSearch(Search):
@@ -23,35 +27,44 @@ class AffiliationSearch(Search):
         `ValueError`
             If the elements provided in `integrity_fields` do not match the
             actual field names (listed above).
+
         """
         # Initiate namedtuple with ordered list of fields
-        fields = 'eid name variant documents city country'
-        aff = namedtuple('Affiliation', fields)
+        fields = "eid name variant documents city country"
+        aff = namedtuple("Affiliation", fields)
         check_field_consistency(self._integrity, fields)
         # Parse elements one-by-one
         out = []
         for item in self._json:
-            name = item['affiliation-name']
-            variants = [html_unescape(d.get('$', ""))
-                        for d in item.get('name-variant', [])
-                        if d.get('$', "") != name]
-            new = aff(eid=item.get('eid'), variant=";".join(variants),
-                      documents=int(item['document-count']), name=html_unescape(name),
-                      city=item.get('city'), country=item.get('country'))
+            name = item["affiliation-name"]
+            variants = [
+                html_unescape(d.get("$", ""))
+                for d in item.get("name-variant", [])
+                if d.get("$", "") != name
+            ]
+            new = aff(
+                eid=item.get("eid"),
+                variant=";".join(variants),
+                documents=int(item["document-count"]),
+                name=html_unescape(name),
+                city=item.get("city"),
+                country=item.get("country"),
+            )
             out.append(new)
         # Finalize
         check_integrity(out, self._integrity, self._action)
         return out or None
 
-    def __init__(self,
-                 query: str,
-                 refresh: Union[bool, int] = False,
-                 verbose: bool = False,
-                 download: bool = True,
-                 integrity_fields: Union[list[str], tuple[str, ...]] = None,
-                 integrity_action: str = "raise",
-                 **kwds: str
-                 ) -> None:
+    def __init__(
+        self,
+        query: str,
+        refresh: Union[bool, int] = False,
+        verbose: bool = False,
+        download: bool = True,
+        integrity_fields: Union[list[str], tuple[str, ...]] = None,
+        integrity_action: str = "raise",
+        **kwds: str,
+    ) -> None:
         """Interaction with the Affiliation Search API.
 
         :param query: A string of the query.  For allowed fields and values see
@@ -93,6 +106,7 @@ class AffiliationSearch(Search):
         The directory for cached results is `{path}/STANDARD/{fname}`,
         where  `path` is specified in your configuration file and `fname` is
         the md5-hashed version of `query`.
+
         """
         # Check
         allowed = ("warn", "raise")
@@ -108,5 +122,5 @@ class AffiliationSearch(Search):
 
     def __str__(self):
         """Return a summary string."""
-        res = [a['affiliation-name'] for a in self._json]
+        res = [a["affiliation-name"] for a in self._json]
         return make_search_summary(self, "affiliation", res)

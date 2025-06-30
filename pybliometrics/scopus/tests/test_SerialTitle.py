@@ -1,7 +1,6 @@
 """Tests for `scopus.SerialTitle` module."""
 
 import datetime
-
 from collections import namedtuple
 
 from pybliometrics.scopus import SerialTitle, init
@@ -14,9 +13,9 @@ softwarex = SerialTitle("2352-7110", refresh=30)
 # OECD Economic Studies
 oecd = SerialTitle("0255-0822", refresh=30)
 # Neural Networks
-neural_networks = SerialTitle('1879-2782', view='CITESCORE', refresh=30)
+neural_networks = SerialTitle("1879-2782", view="CITESCORE", refresh=30)
 # Empty rank for year 2018 in JCO clinical cancer informatics
-jco_cci = SerialTitle('2473-4276', view='CITESCORE', refresh=30)
+jco_cci = SerialTitle("2473-4276", view="CITESCORE", refresh=30)
 
 
 def test_aggregation_type():
@@ -26,12 +25,14 @@ def test_aggregation_type():
 
 
 def test_citescoreyearinfolist():
-    info_fields = 'year citescore'
-    info = namedtuple('Citescoreinfolist', info_fields)
+    info_fields = "year citescore"
+    info = namedtuple("Citescoreinfolist", info_fields)
 
     # Test softwarex
-    expected_named_tuple = [info(year=2024, citescore=4.2),
-                            info(year=2025, citescore=3.1)]
+    expected_named_tuple = [
+        info(year=2024, citescore=4.2),
+        info(year=2025, citescore=3.1),
+    ]
     assert softwarex.citescoreyearinfolist == expected_named_tuple
 
     # Test oecd
@@ -84,7 +85,7 @@ def test_openaccesstype():
 
 
 def test_openaccessarticle():
-    assert softwarex.openaccessarticle == True
+    assert softwarex.openaccessarticle is True
     assert oecd.openaccessarticle is None
     assert jco_cci.openaccessarticle is None
 
@@ -150,20 +151,20 @@ def test_source_id():
 
 
 def test_subject_area():
-    area = namedtuple('Subjectarea', 'area abbreviation code')
+    area = namedtuple("Subjectarea", "area abbreviation code")
     expected1 = [
-        area(area='Computer Science Applications', abbreviation='COMP', code=1706),
-        area(area='Software', abbreviation='COMP', code=1712)
+        area(area="Computer Science Applications", abbreviation="COMP", code=1706),
+        area(area="Software", abbreviation="COMP", code=1712),
     ]
     assert softwarex.subject_area == expected1
     expected2 = [
-        area(area='Geography, Planning and Development', abbreviation='SOCI', code=3305)
+        area(area="Geography, Planning and Development", abbreviation="SOCI", code=3305)
     ]
     assert oecd.subject_area == expected2
     expected3 = [
-        area(area='Cancer Research', abbreviation='BIOC', code=1306),
-        area(area='Health Informatics', abbreviation='MEDI', code=2718),
-        area(area='Oncology', abbreviation='MEDI', code=2730)
+        area(area="Cancer Research", abbreviation="BIOC", code=1306),
+        area(area="Health Informatics", abbreviation="MEDI", code=2718),
+        area(area="Oncology", abbreviation="MEDI", code=2730),
     ]
     assert jco_cci.subject_area == expected3
 
@@ -177,14 +178,26 @@ def test_title():
 def test_yearly_data():
     assert isinstance(softwarex.yearly_data, list)
     assert len(softwarex.yearly_data) == 30
-    fields = 'year publicationcount revpercent zerocitessce '\
-             'zerocitespercentsce citecountsce'
-    dat = namedtuple('Yearlydata', fields)
-    expected1_2020 = dat(year=2020, publicationcount=164, revpercent=0.0,
-        zerocitessce=6, zerocitespercentsce=3.658536585365854,
-        citecountsce=2579)
+    fields = (
+        "year publicationcount revpercent zerocitessce zerocitespercentsce citecountsce"
+    )
+    dat = namedtuple("Yearlydata", fields)
+    expected1_2020 = dat(
+        year=2020,
+        publicationcount=164,
+        revpercent=0.0,
+        zerocitessce=6,
+        zerocitespercentsce=3.658536585365854,
+        citecountsce=2579,
+    )
     assert softwarex.yearly_data[24] == expected1_2020
-    expected2_1996 = dat(year=1996, publicationcount=4, revpercent=0.0,
-        zerocitessce=0, zerocitespercentsce=0, citecountsce=33)
+    expected2_1996 = dat(
+        year=1996,
+        publicationcount=4,
+        revpercent=0.0,
+        zerocitessce=0,
+        zerocitespercentsce=0,
+        citecountsce=33,
+    )
     assert oecd.yearly_data[0] == expected2_1996
     assert jco_cci.yearly_data is None

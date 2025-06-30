@@ -1,20 +1,31 @@
 from typing import Type
+
 from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.exceptions import JSONDecodeError
 from urllib3.util import Retry
 
-from pybliometrics import __version__
-from pybliometrics import exception
-from pybliometrics.utils.startup import get_config, get_insttokens, get_keys, _throttling_params
+from pybliometrics import __version__, exception
+from pybliometrics.utils.startup import (
+    _throttling_params,
+    get_config,
+    get_insttokens,
+    get_keys,
+)
 
 # Define user agent string for HTTP requests
-user_agent = 'pybliometrics-v' + __version__
+user_agent = "pybliometrics-v" + __version__
 
-errors = {400: exception.Scopus400Error, 401: exception.Scopus401Error,
-          403: exception.Scopus403Error, 404: exception.Scopus404Error,
-          407: exception.Scopus407Error, 413: exception.Scopus413Error, 
-          414: exception.Scopus414Error, 429: exception.Scopus429Error}
+errors = {
+    400: exception.Scopus400Error,
+    401: exception.Scopus401Error,
+    403: exception.Scopus403Error,
+    404: exception.Scopus404Error,
+    407: exception.Scopus407Error,
+    413: exception.Scopus413Error,
+    414: exception.Scopus414Error,
+    429: exception.Scopus429Error,
+}
 
 
 def get_session() -> Type[Session]:
@@ -22,12 +33,15 @@ def get_session() -> Type[Session]:
     config = get_config()
 
     _retries = config.getint("Requests", "Retries", fallback=5)
-    retry = Retry(total=_retries, backoff_factor=0.1,
-                  status_forcelist=[500, 501, 502, 503, 504, 524])
+    retry = Retry(
+        total=_retries,
+        backoff_factor=0.1,
+        status_forcelist=[500, 501, 502, 503, 504, 524],
+    )
     adapter = HTTPAdapter(max_retries=retry)
     session = Session()
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
     return session
 
 
@@ -63,6 +77,7 @@ def get_content(url, api, params=None, **kwds):
     -------
     resp : byte-like object
         The content of the file, which needs to be serialized.
+
     """
     from random import shuffle
     from time import sleep, time
@@ -77,7 +92,7 @@ def get_content(url, api, params=None, **kwds):
     insttokens = list(zip(keys, insttokens))
 
     # Keep keys that are not insttokens
-    keys = keys[len(insttokens):]
+    keys = keys[len(insttokens) :]
 
     session = get_session()
 
@@ -98,9 +113,11 @@ def get_content(url, api, params=None, **kwds):
     else:
         key = keys.pop(0)
 
-    header = {'Accept': 'application/json',
-              'User-Agent': user_agent,
-              'X-ELS-APIKey': token_key or key}
+    header = {
+        "Accept": "application/json",
+        "User-Agent": user_agent,
+        "X-ELS-APIKey": token_key or key,
+    }
 
     # Eventually wait bc of throttling
     if len(_throttling_params[api]) == _throttling_params[api].maxlen:
@@ -111,33 +128,36 @@ def get_content(url, api, params=None, **kwds):
 
     # Use insttoken if available
     if insttoken:
-        header['X-ELS-Insttoken'] = insttoken
+        header["X-ELS-Insttoken"] = insttoken
         resp = session.get(url, headers=header, params=params, timeout=timeout)
     else:
-        resp = session.get(url, headers=header, params=params, timeout=timeout, proxies=proxies)
+        resp = session.get(
+            url, headers=header, params=params, timeout=timeout, proxies=proxies
+        )
 
     # If 429 try other tokens
     while (resp.status_code == 429) or (resp.status_code == 401):
         try:
-            token_key, token = insttokens.pop(0) # Get and remove current key
-            header['X-ELS-APIKey'] = token_key
-            header['X-ELS-Insttoken'] = token
+            token_key, token = insttokens.pop(0)  # Get and remove current key
+            header["X-ELS-APIKey"] = token_key
+            header["X-ELS-Insttoken"] = token
             shuffle(insttokens)
             resp = session.get(url, headers=header, params=params, timeout=timeout)
         except IndexError:  # All tokens depleted
             break
 
-   # Remove Insttoken from header (if present)
-    if 'X-ELS-Insttoken' in header:
-        del header['X-ELS-Insttoken']
+    # Remove Insttoken from header (if present)
+    header.pop("X-ELS-Insttoken", None)
 
     # If 429 try other keys
     while (resp.status_code == 429) or (resp.status_code == 401):
         try:
             key = keys.pop(0)  # Remove current key
-            header['X-ELS-APIKey'] = key
+            header["X-ELS-APIKey"] = key
             shuffle(keys)
-            resp = session.get(url, headers=header, proxies=proxies, params=params, timeout=timeout)
+            resp = session.get(
+                url, headers=header, proxies=proxies, params=params, timeout=timeout
+            )
         except IndexError:  # All keys depleted
             break
 
@@ -147,11 +167,11 @@ def get_content(url, api, params=None, **kwds):
     try:
         error_type = errors[resp.status_code]
         try:
-            reason = resp.json()['service-error']['status']['statusText']
+            reason = resp.json()["service-error"]["status"]["statusText"]
         except KeyError:
             try:
-                reason = resp.json()['message']
-            except:
+                reason = resp.json()["message"]
+            except Exception:
                 reason = ""
         raise error_type(reason)
     except (JSONDecodeError, KeyError):
@@ -176,20 +196,20 @@ def detect_id_type(sid):
     -----
     Scopus IDs and Pubmed IDs are sometimes hard to distinguish.  If you
     work with both types, consider specifying the ID type manually.
+
     """
     sid = str(sid)
     if not sid.isnumeric():
-        if sid.startswith('1-s2.0-') or sid.startswith('2-s2.0-'):
-            id_type = 'eid'
-        elif '/' in sid or "." in sid:
-            id_type = 'doi'
+        if sid.startswith("1-s2.0-") or sid.startswith("2-s2.0-"):
+            id_type = "eid"
+        elif "/" in sid or "." in sid:
+            id_type = "doi"
         elif 16 <= len(sid) <= 17:
-            id_type = 'pii'
+            id_type = "pii"
+    elif len(sid) < 10:
+        id_type = "pubmed_id"
     else:
-        if len(sid) < 10:
-            id_type = 'pubmed_id'
-        else:
-            id_type = 'scopus_id'
+        id_type = "scopus_id"
     try:
         return id_type
     except UnboundLocalError:

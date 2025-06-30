@@ -2,8 +2,13 @@ from collections import namedtuple
 from typing import Optional, Union
 
 from pybliometrics.superclasses import Search
-from pybliometrics.utils import check_integrity, check_parameter_value, \
-    check_field_consistency, get_and_aggregate_subjects, listify, make_search_summary
+from pybliometrics.utils import (
+    check_field_consistency,
+    check_integrity,
+    check_parameter_value,
+    get_and_aggregate_subjects,
+    make_search_summary,
+)
 
 
 class AuthorSearch(Search):
@@ -15,7 +20,7 @@ class AuthorSearch(Search):
         documents affiliation affiliation_id city country areas)`.
 
         All entries are `str` or `None`.  Areas combines abbreviated subject
-        areas followed by the number of documents in this subject. The number of 
+        areas followed by the number of documents in this subject. The number of
         documents on duplicate subject areas is summed up.
 
         Raises
@@ -23,46 +28,54 @@ class AuthorSearch(Search):
         ValueError
             If the elements provided in `integrity_fields` do not match the
             actual field names (listed above).
+
         """
         # Initiate namedtuple with ordered list of fields
-        fields = 'eid orcid surname initials givenname affiliation documents '\
-                 'affiliation_id city country areas'
-        auth = namedtuple('Author', fields)
+        fields = (
+            "eid orcid surname initials givenname affiliation documents "
+            "affiliation_id city country areas"
+        )
+        auth = namedtuple("Author", fields)
         check_field_consistency(self._integrity, fields)
         # Parse elements one-by-one
         out = []
         for item in self._json:
-            name = item.get('preferred-name', {})
-            aff = item.get('affiliation-current', {})
-            fields = item.get('subject-area',
-                              [{'@abbrev': '', '@frequency': ''}])
+            name = item.get("preferred-name", {})
+            aff = item.get("affiliation-current", {})
+            fields = item.get("subject-area", [{"@abbrev": "", "@frequency": ""}])
             subjects = get_and_aggregate_subjects(fields)
-            areas = [f"{abbrev} ({'' if freq == 0 else freq})" for abbrev, freq in subjects.items()]
-            new = auth(eid=item.get('eid'),
-                       orcid=item.get('orcid'),
-                       initials=name.get('initials'),
-                       surname=name.get('surname'),
-                       areas="; ".join(areas),
-                       givenname=name.get('given-name'),
-                       documents=int(item['document-count']),
-                       affiliation=aff.get('affiliation-name'),
-                       affiliation_id=aff.get('affiliation-id'),
-                       city=aff.get('affiliation-city'),
-                       country=aff.get('affiliation-country'))
+            areas = [
+                f"{abbrev} ({'' if freq == 0 else freq})"
+                for abbrev, freq in subjects.items()
+            ]
+            new = auth(
+                eid=item.get("eid"),
+                orcid=item.get("orcid"),
+                initials=name.get("initials"),
+                surname=name.get("surname"),
+                areas="; ".join(areas),
+                givenname=name.get("given-name"),
+                documents=int(item["document-count"]),
+                affiliation=aff.get("affiliation-name"),
+                affiliation_id=aff.get("affiliation-id"),
+                city=aff.get("affiliation-city"),
+                country=aff.get("affiliation-country"),
+            )
             out.append(new)
         # Finalize
         check_integrity(out, self._integrity, self._action)
         return out or None
 
-    def __init__(self,
-                 query: str,
-                 refresh: Union[bool, int] = False,
-                 verbose: bool = False,
-                 download: bool = True,
-                 integrity_fields: Union[list[str], tuple[str, ...]] = None,
-                 integrity_action: str = "raise",
-                 **kwds: str
-                 ) -> None:
+    def __init__(
+        self,
+        query: str,
+        refresh: Union[bool, int] = False,
+        verbose: bool = False,
+        download: bool = True,
+        integrity_fields: Union[list[str], tuple[str, ...]] = None,
+        integrity_action: str = "raise",
+        **kwds: str,
+    ) -> None:
         """Interaction with the Author Search API.
 
         :param query: A string of the query.  For allowed fields and values see
@@ -104,6 +117,7 @@ class AuthorSearch(Search):
         The directory for cached results is `{path}/STANDARD/{fname}`,
         where  `path` is specified in your configuration file, and `fname` is
         the md5-hashed version of `query`.
+
         """
         # Checks
         allowed = ("warn", "raise")
@@ -119,8 +133,10 @@ class AuthorSearch(Search):
 
     def __str__(self):
         """Print a summary string."""
-        names = [f'{n["preferred-name"].get("surname", "?")}, '
-                 f'{n["preferred-name"].get("given-name", "?")}; '
-                 f'{n["dc:identifier"]} ({int(n["document-count"]):,} document(s))'
-                 for n in self._json]
+        names = [
+            f"{n['preferred-name'].get('surname', '?')}, "
+            f"{n['preferred-name'].get('given-name', '?')}; "
+            f"{n['dc:identifier']} ({int(n['document-count']):,} document(s))"
+            for n in self._json
+        ]
         return make_search_summary(self, "author", names)

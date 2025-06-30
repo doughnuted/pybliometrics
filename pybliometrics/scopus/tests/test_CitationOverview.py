@@ -7,16 +7,22 @@ from pybliometrics.scopus import CitationOverview, init
 init()
 
 
-co_eid = CitationOverview(["84930616647", "85068268027"],
-                          refresh=30, date="2016-2020")
-co_doi = CitationOverview(["10.1016/j.softx.2019.100263"],
-                          id_type="doi", refresh=30, date="2016-2020")
+co_eid = CitationOverview(["84930616647", "85068268027"], refresh=30, date="2016-2020")
+co_doi = CitationOverview(
+    ["10.1016/j.softx.2019.100263"], id_type="doi", refresh=30, date="2016-2020"
+)
+
 
 def test_authors():
-    Author = namedtuple('Author', 'name surname initials id url')
-    url = 'https://api.elsevier.com/content/author/author_id/7004212771'
-    john = Author(name='Kitchin J.R.', surname='Kitchin',
-                  initials='J.R.', id='7004212771', url=url)
+    Author = namedtuple("Author", "name surname initials id url")
+    url = "https://api.elsevier.com/content/author/author_id/7004212771"
+    john = Author(
+        name="Kitchin J.R.",
+        surname="Kitchin",
+        initials="J.R.",
+        id="7004212771",
+        url=url,
+    )
     assert co_eid.authors[0][1] == john
     assert co_eid.authors[1] == [john]
     assert co_doi.authors[0][1] == john
@@ -30,13 +36,13 @@ def test_cc():
 
 
 def test_citationType_long():
-    assert co_eid.citationType_long == ['Article', 'Review']
-    assert co_doi.citationType_long == ['Article']
+    assert co_eid.citationType_long == ["Article", "Review"]
+    assert co_doi.citationType_long == ["Article"]
 
 
 def test_citationType_short():
-    assert co_eid.citationType_short == ['ar', 're']
-    assert co_doi.citationType_short == ['ar']
+    assert co_eid.citationType_short == ["ar", "re"]
+    assert co_doi.citationType_short == ["ar"]
 
 
 def test_columnTotal():
@@ -45,13 +51,13 @@ def test_columnTotal():
 
 
 def test_doi():
-    expected = ['10.1016/j.softx.2019.100263', '10.1021/acscatal.5b00538']
+    expected = ["10.1016/j.softx.2019.100263", "10.1021/acscatal.5b00538"]
     assert co_eid.doi == expected
     assert co_doi.doi == [expected[0]]
 
 
 def test_endingPage():
-    assert co_eid.endingPage == [None, '3899']
+    assert co_eid.endingPage == [None, "3899"]
     assert co_doi.endingPage is None
 
 
@@ -66,13 +72,13 @@ def test_h_index():
 
 
 def test_issn():
-    expected = ['2352-7110', '2155-5435']
+    expected = ["2352-7110", "2155-5435"]
     assert co_eid.issn == expected
     assert co_doi.issn == [expected[0]]
 
 
 def test_issueIdentifier():
-    assert co_eid.issueIdentifier == [None, '6']
+    assert co_eid.issueIdentifier == [None, "6"]
     assert co_doi.issueIdentifier is None
 
 
@@ -93,7 +99,7 @@ def test_pcc():
 
 
 def test_pii():
-    expected = ['S2352711019300573', None]
+    expected = ["S2352711019300573", None]
     assert co_eid.pii == expected
     assert co_doi.pii == [expected[0]]
 
@@ -127,30 +133,34 @@ def test_scopus_id():
 
 
 def test_startingPage():
-    assert co_eid.startingPage == [None, '3894']
-    assert co_doi.startingPage == None
+    assert co_eid.startingPage == [None, "3894"]
+    assert co_doi.startingPage is None
 
 
 def test_sortTitle():
-    expected = ['Softwarex', 'ACS Catalysis']
+    expected = ["Softwarex", "ACS Catalysis"]
     assert co_eid.sortTitle == expected
     assert co_doi.sortTitle == [expected[0]]
 
 
 def test_title():
-    expected = ['pybliometrics: Scriptable bibliometrics using a Python interface to Scopus',
-                'Examples of effective data sharing in scientific publishing']
+    expected = [
+        "pybliometrics: Scriptable bibliometrics using a Python interface to Scopus",
+        "Examples of effective data sharing in scientific publishing",
+    ]
     assert co_eid.title == expected
     assert co_doi.title == [expected[0]]
 
 
 def test_url():
-    expected = ['https://api.elsevier.com/content/abstract/scopus_id/85068268027',
-                'https://api.elsevier.com/content/abstract/scopus_id/84930616647']
+    expected = [
+        "https://api.elsevier.com/content/abstract/scopus_id/85068268027",
+        "https://api.elsevier.com/content/abstract/scopus_id/84930616647",
+    ]
     assert co_eid.url == expected
     assert co_doi.url == [expected[0]]
 
 
 def test_volume():
-    assert co_eid.volume == ['10', '5']
-    assert co_doi.volume == ['10']
+    assert co_eid.volume == ["10", "5"]
+    assert co_doi.volume == ["10"]

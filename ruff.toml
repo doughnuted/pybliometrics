@@ -1,6 +1,0 @@
-[tool.ruff]
-select = ["E", "F", "W", "I", "N", "D", "UP", "YTT", "ANN", "ASYNC", "BLE", "B", "A", "C4", "DTZ", "T10", "EM", "ERA", "EXE", "FBT", "FA", "ISC", "ICN", "G", "INP", "PIE", "PL", "PT", "Q", "RSE", "RET", "SLF", "TID", "ARG", "PTH", "SIM", "RUF"]
-ignore = []
-
-[tool.ruff.lint.per-file-ignores]
-"**/__init__.py" = ["F401"]

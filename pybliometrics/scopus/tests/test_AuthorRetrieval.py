@@ -1,6 +1,6 @@
 """Tests for `scopus.AuthorRetrieval` module."""
 
-from collections import Counter, namedtuple
+from collections import namedtuple
 
 from pybliometrics.scopus import AuthorRetrieval, init
 
@@ -10,28 +10,54 @@ metrics = AuthorRetrieval("7004212771", refresh=30, view="METRICS")
 light = AuthorRetrieval("7004212771", refresh=30, view="LIGHT")
 standard = AuthorRetrieval("7004212771", refresh=30, view="STANDARD")
 enhanced = AuthorRetrieval("7004212771", refresh=30, view="ENHANCED")
-entitled = AuthorRetrieval(36009348900, view='ENTITLED')
+entitled = AuthorRetrieval(36009348900, view="ENTITLED")
 
 
 def test_affiliation_current():
     assert metrics.affiliation_current is None
 
-    order = 'id parent type relationship afdispname preferred_name '\
-            'parent_preferred_name country_code country address_part city '\
-            'state postal_code org_domain org_URL'
-    aff = namedtuple('Affiliation', order, defaults=(None,) * len(order.split()))
+    order = (
+        "id parent type relationship afdispname preferred_name "
+        "parent_preferred_name country_code country address_part city "
+        "state postal_code org_domain org_URL"
+    )
+    aff = namedtuple("Affiliation", order, defaults=(None,) * len(order.split()))
 
-    expected_std_enh = aff(id=60027950, parent=None, type='parent',
-        relationship='author', afdispname=None, preferred_name='Carnegie Mellon University',
-        parent_preferred_name=None, country_code='usa', country='United States',
-        address_part='5000 Forbes Avenue', city='Pittsburgh', state='PA',
-        postal_code='15213-3890', org_domain='cmu.edu', org_URL='https://www.cmu.edu/')
+    expected_std_enh = aff(
+        id=60027950,
+        parent=None,
+        type="parent",
+        relationship="author",
+        afdispname=None,
+        preferred_name="Carnegie Mellon University",
+        parent_preferred_name=None,
+        country_code="usa",
+        country="United States",
+        address_part="5000 Forbes Avenue",
+        city="Pittsburgh",
+        state="PA",
+        postal_code="15213-3890",
+        org_domain="cmu.edu",
+        org_URL="https://www.cmu.edu/",
+    )
 
-    expected_lgh = aff(id=None, parent=None, type=None,
-        relationship=None, afdispname=None, preferred_name='Carnegie Mellon University',
-        parent_preferred_name=None, country_code=None, country='United States',
-        address_part=None, city='Pittsburgh', state=None,
-        postal_code=None, org_domain=None, org_URL=None)
+    expected_lgh = aff(
+        id=None,
+        parent=None,
+        type=None,
+        relationship=None,
+        afdispname=None,
+        preferred_name="Carnegie Mellon University",
+        parent_preferred_name=None,
+        country_code=None,
+        country="United States",
+        address_part=None,
+        city="Pittsburgh",
+        state=None,
+        postal_code=None,
+        org_domain=None,
+        org_URL=None,
+    )
 
     for a in (standard, enhanced, light):
         received = a.affiliation_current
@@ -48,17 +74,29 @@ def test_affiliation_current():
 def test_affiliation_history():
     assert metrics.affiliation_history is None
     assert light.affiliation_history is None
-    order = 'id parent type relationship afdispname preferred_name '\
-            'parent_preferred_name country_code country address_part city '\
-            'state postal_code org_domain org_URL'
-    aff = namedtuple('Affiliation', order)
-    expected = aff(id=60008644, parent=None, type='parent',
-        relationship='author', afdispname=None,
-        preferred_name='Fritz Haber Institute of the Max Planck Society',
-        parent_preferred_name=None, country_code='deu', country='Germany',
-        address_part='Faradayweg 4-6', city='Berlin', state=None,
-        postal_code='14195', org_domain='fhi.mpg.de',
-        org_URL='https://www.fhi.mpg.de/')
+    order = (
+        "id parent type relationship afdispname preferred_name "
+        "parent_preferred_name country_code country address_part city "
+        "state postal_code org_domain org_URL"
+    )
+    aff = namedtuple("Affiliation", order)
+    expected = aff(
+        id=60008644,
+        parent=None,
+        type="parent",
+        relationship="author",
+        afdispname=None,
+        preferred_name="Fritz Haber Institute of the Max Planck Society",
+        parent_preferred_name=None,
+        country_code="deu",
+        country="Germany",
+        address_part="Faradayweg 4-6",
+        city="Berlin",
+        state=None,
+        postal_code="14195",
+        org_domain="fhi.mpg.de",
+        org_URL="https://www.fhi.mpg.de/",
+    )
     for a in (standard, enhanced):
         received = a.affiliation_history
         assert isinstance(received, list)
@@ -111,7 +149,7 @@ def test_coauthor_link():
     assert metrics.coauthor_link is None
     assert light.coauthor_link is None
     assert standard.coauthor_link is None
-    expected = 'http://api.elsevier.com/content/search/author?co-author=7004212771'
+    expected = "http://api.elsevier.com/content/search/author?co-author=7004212771"
     assert enhanced.coauthor_link == expected
 
 
@@ -132,9 +170,9 @@ def test_document_count():
 
 def test_eid():
     assert metrics.eid is None
-    assert light.eid, '9-s2.0-7004212771'
-    assert standard.eid, '9-s2.0-7004212771'
-    assert enhanced.eid, '9-s2.0-7004212771'
+    assert light.eid, "9-s2.0-7004212771"
+    assert standard.eid, "9-s2.0-7004212771"
+    assert enhanced.eid, "9-s2.0-7004212771"
 
 
 def test_estimate_uniqueness():
@@ -149,14 +187,14 @@ def test_entitlement():
     assert light.document_entitlement_status is None
     assert standard.document_entitlement_status is None
     assert enhanced.document_entitlement_status is None
-    assert entitled.document_entitlement_status == 'ENTITLED'
+    assert entitled.document_entitlement_status == "ENTITLED"
 
 
 def test_given_name():
     assert metrics.given_name is None
     assert light.given_name is None
-    assert standard.given_name == 'John R.'
-    assert enhanced.given_name == 'John R.'
+    assert standard.given_name == "John R."
+    assert enhanced.given_name == "John R."
 
 
 def get_coauthors():
@@ -166,17 +204,23 @@ def get_coauthors():
     received = enhanced.get_coauthors()
     assert isinstance(received, list)
     assert len(received) > 155
-    fields = 'surname given_name id areas affiliation_id name city country'
-    coauth = namedtuple('Coauthor', fields)
-    expected = coauth(surname='Rose', given_name='Michael E.', id=57209617104,
-        areas='Computer Science (all)', affiliation_id=60105007,
-        name='Max-Planck-Institut für Innovation und Wettbewerb',
-        city='Munich', country='Germany')
+    fields = "surname given_name id areas affiliation_id name city country"
+    coauth = namedtuple("Coauthor", fields)
+    expected = coauth(
+        surname="Rose",
+        given_name="Michael E.",
+        id=57209617104,
+        areas="Computer Science (all)",
+        affiliation_id=60105007,
+        name="Max-Planck-Institut für Innovation und Wettbewerb",
+        city="Munich",
+        country="Germany",
+    )
     assert expected in received
 
 
 def test_get_documents():
-    subtypes = {'re', 'ed', 'no'}
+    subtypes = {"re", "ed", "no"}
     received = enhanced.get_documents(subtypes)
     assert len(received) == 8
 
@@ -199,7 +243,7 @@ def test_historical_identifier():
     assert metrics.historical_identifier is None
     assert light.historical_identifier is None
     assert standard.historical_identifier is None
-    assert enhanced.historical_identifier == None
+    assert enhanced.historical_identifier is None
 
 
 def test_identifier():
@@ -212,16 +256,16 @@ def test_identifier():
 
 def test_indexed_name():
     assert metrics.indexed_name is None
-    assert light.indexed_name, 'Kitchin J.'
-    assert standard.indexed_name, 'Kitchin J.'
-    assert enhanced.indexed_name, 'Kitchin J.'
+    assert light.indexed_name, "Kitchin J."
+    assert standard.indexed_name, "Kitchin J."
+    assert enhanced.indexed_name, "Kitchin J."
 
 
 def test_initials():
     assert metrics.initials is None
     assert light.initials is None
-    assert standard.initials, 'J.R.'
-    assert enhanced.initials, 'J.R.'
+    assert standard.initials, "J.R."
+    assert enhanced.initials, "J.R."
 
 
 def test_name_variants():
@@ -238,9 +282,9 @@ def test_name_variants():
 
 def test_orcid():
     assert metrics.orcid is None
-    assert light.orcid, '0000-0003-2625-9232'
-    assert standard.orcid, '0000-0003-2625-9232'
-    assert enhanced.orcid, '0000-0003-2625-9232'
+    assert light.orcid, "0000-0003-2625-9232"
+    assert standard.orcid, "0000-0003-2625-9232"
+    assert enhanced.orcid, "0000-0003-2625-9232"
 
 
 def test_publication_range():
@@ -252,7 +296,7 @@ def test_publication_range():
 
 def test_scopus_author_link():
     assert metrics.scopus_author_link is None
-    expected = 'http://api.elsevier.com/content/author/author_id/7004212771'
+    expected = "http://api.elsevier.com/content/author/author_id/7004212771"
     assert light.scopus_author_link == expected
     assert standard.scopus_author_link == expected
     assert enhanced.scopus_author_link == expected
@@ -260,8 +304,9 @@ def test_scopus_author_link():
 
 def test_search_link():
     assert metrics.search_link is None
-    expected = 'http://api.elsevier.com/content/search/scopus?query='\
-               'au-id%287004212771%29'
+    expected = (
+        "http://api.elsevier.com/content/search/scopus?query=au-id%287004212771%29"
+    )
     assert light.search_link == expected
     assert standard.search_link == expected
     assert enhanced.search_link == expected
@@ -269,8 +314,10 @@ def test_search_link():
 
 def test_self_link():
     assert metrics.self_link is None
-    expected = 'https://www.scopus.com/authid/detail.uri?partnerID=HzOxMe3b&'\
-               'authorId=7004212771&origin=inward'
+    expected = (
+        "https://www.scopus.com/authid/detail.uri?partnerID=HzOxMe3b&"
+        "authorId=7004212771&origin=inward"
+    )
     assert light.self_link == expected
     assert standard.self_link == expected
     assert enhanced.self_link == expected
@@ -298,12 +345,12 @@ def test_subject_areas():
 def test_surname():
     assert metrics.surname is None
     assert light.surname is None
-    assert standard.surname, 'Kitchin'
-    assert enhanced.surname, 'Kitchin'
+    assert standard.surname, "Kitchin"
+    assert enhanced.surname, "Kitchin"
 
 
 def test_url():
-    expected = 'http://api.elsevier.com/content/author/author_id/7004212771'
+    expected = "http://api.elsevier.com/content/author/author_id/7004212771"
     assert metrics.url == expected
     assert light.url == expected
     assert standard.url == expected
