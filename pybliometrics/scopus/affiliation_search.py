@@ -14,7 +14,8 @@ from pybliometrics.utils import (
 class AffiliationSearch(Search):
     @property
     def affiliations(self) -> Optional[list[namedtuple]]:
-        """A list of namedtuples storing affiliation information,
+        """
+        A list of namedtuples storing affiliation information,
         where each namedtuple corresponds to one affiliation.
         The information in each namedtuple is `(eid name variant documents city
         country)`.
@@ -65,7 +66,8 @@ class AffiliationSearch(Search):
         integrity_action: str = "raise",
         **kwds: str,
     ) -> None:
-        """Interaction with the Affiliation Search API.
+        """
+        Interaction with the Affiliation Search API.
 
         :param query: A string of the query.  For allowed fields and values see
                       https://dev.elsevier.com/sc_affil_search_tips.html.

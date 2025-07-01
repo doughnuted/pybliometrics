@@ -8,13 +8,14 @@ from pybliometrics.utils import chained_get, make_search_summary
 class SubjectClassifications(Search):
     @property
     def results(self) -> Optional[list[namedtuple]]:
-        """A list of namedtuples representing results of subject
+        """
+        A list of namedtuples representing results of subject
         classifications search in the form `(code, description, detail, abbrev)`.
         """
         out = []
-        path = ['subject-classifications', 'subject-classification']
+        path = ["subject-classifications", "subject-classification"]
         search_results = chained_get(self._json, path, [])
-        subj = namedtuple('Subject', self.fields)
+        subj = namedtuple("Subject", self.fields)
         if isinstance(search_results, dict):
             for field_name in self.fields:
                 if field_name not in search_results:
@@ -29,13 +30,15 @@ class SubjectClassifications(Search):
                 out.append(subj(**result))
         return out or None
 
-    def __init__(self,
-                 query: dict,
-                 refresh: Union[bool, int] = False,
-                 fields: Optional[Union[list[str], tuple[str, ...]]] = None,
-                 **kwds: str
-                 ) -> None:
-        """Interaction with the Subject Classifications Scopus API.
+    def __init__(
+        self,
+        query: dict,
+        refresh: Union[bool, int] = False,
+        fields: Optional[Union[list[str], tuple[str, ...]]] = None,
+        **kwds: str,
+    ) -> None:
+        """
+        Interaction with the Subject Classifications Scopus API.
 
         :param query: Query parameters and corresponding fields. Allowed keys
                       `'code'`, `'abbrev'`, `'description'`, `'detail'`. For more
@@ -67,10 +70,11 @@ class SubjectClassifications(Search):
         where `path` is specified in your configuration file, and `fname` is
         the md5-hashed version of `query` dict turned into string in format
         of `'key=value'` delimited by `'&'`.
+
         """
         # Checks
-        allowed_query_keys = ('code', 'description', 'detail', 'abbrev')
-        invalid = [k for k in query.keys() if k not in allowed_query_keys]
+        allowed_query_keys = ("code", "description", "detail", "abbrev")
+        invalid = [k for k in query if k not in allowed_query_keys]
         if invalid:
             raise ValueError(f'Query key(s) "{", ".join(invalid)}" invalid.')
         self.fields = fields or allowed_query_keys
@@ -81,16 +85,18 @@ class SubjectClassifications(Search):
                 print("Fields must be iterable")
                 raise
             if not set(return_fields).issubset(allowed_query_keys):
-                raise ValueError("Parameter 'fields' must be one of " +
-                                 f"{', '.join(allowed_query_keys)}.")
+                raise ValueError(
+                    "Parameter 'fields' must be one of "
+                    f"{', '.join(allowed_query_keys)}."
+                )
 
         # Query
-        query['field'] = ','.join(self.fields)
+        query["field"] = ",".join(self.fields)
         self._refresh = refresh
         self._query = str(query)
-        self._view = ''
+        self._view = ""
         Search.__init__(self, query=query, **kwds)
-        path = ['subject-classifications', 'subject-classification']
+        path = ["subject-classifications", "subject-classification"]
         self._n = len(chained_get(self._json, path, []))
 
     def __str__(self):

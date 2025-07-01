@@ -1,5 +1,6 @@
 def check_parameter_value(parameter, allowed, name):
-    """Raise a ValueError if a parameter value is not in the set of
+    """
+    Raise a ValueError if a parameter value is not in the set of
     allowed values.
     """
     if parameter not in allowed:

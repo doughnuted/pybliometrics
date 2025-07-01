@@ -6,17 +6,23 @@ from pybliometrics.scopus import AffiliationSearch, init
 
 init()
 
-s1 = AffiliationSearch('AF-ID(60021784)', refresh=30)
-s2 = AffiliationSearch('AFFIL(Max Planck Munich)', download=False, refresh=True)
+s1 = AffiliationSearch("AF-ID(60021784)", refresh=30)
+s2 = AffiliationSearch("AFFIL(Max Planck Munich)", download=False, refresh=True)
 
 
 def test_affiliations():
     received1 = s1.affiliations
     assert isinstance(received1, list)
-    order = 'eid name variant documents city country'
-    Affiliation = namedtuple('Affiliation', order)
-    expected = Affiliation(eid='10-s2.0-60021784', name='New York University',
-        variant='', documents=0, city='New York', country='United States')
+    order = "eid name variant documents city country"
+    Affiliation = namedtuple("Affiliation", order)
+    expected = Affiliation(
+        eid="10-s2.0-60021784",
+        name="New York University",
+        variant="",
+        documents=0,
+        city="New York",
+        country="United States",
+    )
     assert received1[0].documents >= 90_000
     assert received1[0]._replace(documents=0) == expected
 

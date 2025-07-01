@@ -20,7 +20,8 @@ class SerialTitle(Retrieval):
 
     @property
     def citescoreyearinfolist(self) -> Optional[list[namedtuple]]:
-        """A list of named tuples of the form: `(year citescore)` or (when
+        """
+        A list of named tuples of the form: `(year citescore)` or (when
         `view="CITESCORE"`) `(year citescore status documentcount citationcount
         percentcited rank)`.  `rank` is `None` or a named tuple of the form
         `(subjectcode rank percentile)`.
@@ -140,7 +141,8 @@ class SerialTitle(Retrieval):
 
     @property
     def sjrlist(self) -> Optional[list[tuple[int, float]]]:
-        """The SCImago Journal Rank (SJR) indicator as list of tuples in the form
+        """
+        The SCImago Journal Rank (SJR) indicator as list of tuples in the form
         `(year, indicator)`.  See
         https://www.scimagojr.com/journalrank.php.
         """
@@ -148,7 +150,8 @@ class SerialTitle(Retrieval):
 
     @property
     def sniplist(self) -> Optional[list[tuple[int, float]]]:
-        """The Source-Normalized Impact per Paper (SNIP) as list of tuples in the form
+        """
+        The Source-Normalized Impact per Paper (SNIP) as list of tuples in the form
         `(year, indicator)`.  See
         https://blog.scopus.com/posts/journal-metrics-in-scopus-source-normalized-impact-per-paper-snip.
         """
@@ -161,7 +164,8 @@ class SerialTitle(Retrieval):
 
     @property
     def subject_area(self) -> Optional[list[namedtuple]]:
-        """List of named tuples of subject areas in the form
+        """
+        List of named tuples of subject areas in the form
         `(area, abbreviation, code)` of the source.
         """
         area = namedtuple("Subjectarea", "area abbreviation code")
@@ -178,7 +182,8 @@ class SerialTitle(Retrieval):
 
     @property
     def yearly_data(self) -> Optional[list[namedtuple]]:
-        """Yearly citation information as a list of namedtuples in the
+        """
+        Yearly citation information as a list of namedtuples in the
         form `(year, publicationcount, revpercent, zerocitessce,
         zerocitespercentsce, citecountsce)`.  That's the number of documents
         published in this year, the share of review articles thereof, the
@@ -215,7 +220,8 @@ class SerialTitle(Retrieval):
         years: str = None,
         **kwds: str,
     ) -> None:
-        """Interaction with the Serial Title API.
+        """
+        Interaction with the Serial Title API.
         Class retrieves data from both Scopus and ScienceDirect.
 
         :param issn: The ISSN or the E-ISSN of the source.
@@ -306,7 +312,8 @@ def _parse_list(d, metric):
 def _get_all_cite_score_years(
     named_info_list: namedtuple, named_rank_list: namedtuple, data: dict
 ) -> Optional[list[namedtuple]]:
-    """Auxiliary function to get all information contained in cite score
+    """
+    Auxiliary function to get all information contained in cite score
     information list for the `CITESCORE` view.
     """
     data = data.get("citeScoreYearInfo", [])

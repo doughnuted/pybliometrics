@@ -1,3 +1,4 @@
+"""The ScienceDirect module."""
 from pybliometrics.sciencedirect.article_entitlement import ArticleEntitlement
 from pybliometrics.sciencedirect.article_metadata import ArticleMetadata
 from pybliometrics.sciencedirect.article_retrieval import ArticleRetrieval

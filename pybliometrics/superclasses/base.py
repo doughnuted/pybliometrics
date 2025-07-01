@@ -8,19 +8,20 @@ from typing import Optional
 from tqdm import tqdm
 
 from pybliometrics.exception import ScopusQueryError
-from pybliometrics.utils import get_content, parse_content, SEARCH_MAX_ENTRIES
-from pybliometrics.utils import listify
+from pybliometrics.utils import SEARCH_MAX_ENTRIES, get_content, listify, parse_content
 
 
 class Base:
-    def __init__(self,
-                 params: dict,
-                 url: str,
-                 download: bool = True,
-                 verbose: bool = False,
-                 **kwds: str
-                 ) -> None:
-        """Class intended as base class for superclasses.
+    def __init__(
+        self,
+        params: dict,
+        url: str,
+        download: bool = True,
+        verbose: bool = False,
+        **kwds: str,
+    ) -> None:
+        """
+        Class intended as base class for superclasses.
 
         :param params: Dictionary used as header during the API request.
         :param url: The URL to be accessed.
@@ -33,6 +34,7 @@ class Base:
         ------
         ValueError
             If `self._refresh` is neither boolean nor numeric.
+
         """
         api = self.__class__.__name__
         # Checks
@@ -51,15 +53,16 @@ class Base:
         # Check if search request
         search_request = "query" in params
         # Check if ref retrieval for abstract
-        ab_ref_retrieval = (api == 'AbstractRetrieval') and (params['view'] == 'REF')
+        ab_ref_retrieval = (api == "AbstractRetrieval") and (params["view"] == "REF")
         # Check if object retrieval
-        obj_retrieval = (api == 'ObjectRetrieval')
+        obj_retrieval = api == "ObjectRetrieval"
 
         if fname.exists() and not self._refresh:
             self._mdate = mod_ts
             if search_request:
-                self._json = [loads(line) for line in
-                              fname.read_text().split("\n") if line]
+                self._json = [
+                    loads(line) for line in fname.read_text().split("\n") if line
+                ]
                 self._n = len(self._json)
             elif obj_retrieval:
                 self._object = fname.read_bytes()
@@ -70,27 +73,29 @@ class Base:
             header = resp.headers
 
             if ab_ref_retrieval:
-                kwds['startref'] = '1'
+                kwds["startref"] = "1"
                 data = _get_all_refs(url, params, verbose, resp, **kwds)
                 self._json = data
                 data = [data]
             elif search_request:
                 # Get number of results
                 res = resp.json()
-                n = int(res['search-results'].get('opensearch:totalResults', 0) or 0)
+                n = int(res["search-results"].get("opensearch:totalResults", 0) or 0)
                 self._n = n
                 # Results size check
                 cursor_exists = "cursor" in params
                 if not cursor_exists and n > SEARCH_MAX_ENTRIES:
                     # Stop if there are too many results
-                    text = f'Found {n:,} matches.  The query fails to return '\
-                           f'more than {SEARCH_MAX_ENTRIES} entries.  Change '\
-                           'your query such that it returns fewer entries.'
+                    text = (
+                        f"Found {n:,} matches.  The query fails to return "
+                        f"more than {SEARCH_MAX_ENTRIES} entries.  Change "
+                        "your query such that it returns fewer entries."
+                    )
                     raise ScopusQueryError(text)
                 self._json = []
                 # Download results page-wise
                 if download:
-                    data = res.get('search-results', {}).get('entry', [])
+                    data = res.get("search-results", {}).get("entry", [])
                     if not n:
                         data = ""
                     if not cursor_exists:
@@ -98,18 +103,22 @@ class Base:
                     # Download the remaining information in chunks
                     if verbose:
                         print(f'Downloading results for query "{params["query"]}":')
-                    n_chunks = ceil(n/params['count'])
-                    for i in tqdm(range(1, n_chunks), disable=not verbose,
-                                  initial=1, total=n_chunks):
+                    n_chunks = ceil(n / params["count"])
+                    for i in tqdm(
+                        range(1, n_chunks),
+                        disable=not verbose,
+                        initial=1,
+                        total=n_chunks,
+                    ):
                         if cursor_exists:
-                            cursor = res['search-results']['cursor']['@next']
-                            params.update({'cursor': cursor})
+                            cursor = res["search-results"]["cursor"]["@next"]
+                            params.update({"cursor": cursor})
                         else:
                             start += params["count"]
-                            params.update({'start': start})
+                            params.update({"start": start})
                         resp = get_content(url, api, params, **kwds)
                         res = resp.json()
-                        data.extend(res.get('search-results', {}).get('entry', []))
+                        data.extend(res.get("search-results", {}).get("entry", []))
                     header = resp.headers  # Use header of final call
                     self._json = data
                 else:
@@ -129,7 +138,7 @@ class Base:
                 if obj_retrieval:
                     fname.write_bytes(self._object)
                 else:
-                    text = [dumps(item, separators=(',', ':')) for item in data]
+                    text = [dumps(item, separators=(",", ":")) for item in data]
                     fname.write_text("\n".join(text))
 
     def get_cache_file_age(self) -> int:
@@ -139,24 +148,26 @@ class Base:
 
     def get_cache_file_mdate(self) -> str:
         """Return the modification date of the cached file."""
-        return strftime('%Y-%m-%d %H:%M:%S', localtime(self._mdate))
+        return strftime("%Y-%m-%d %H:%M:%S", localtime(self._mdate))
 
     def get_key_remaining_quota(self) -> Optional[str]:
-        """Return number of remaining requests for the current key and the
+        """
+        Return number of remaining requests for the current key and the
         current API (relative on last actual request).
         """
         try:
-            return self._header['X-RateLimit-Remaining']
+            return self._header["X-RateLimit-Remaining"]
         except AttributeError:
             return None
 
     def get_key_reset_time(self) -> Optional[str]:
-        """Return time when current key is reset (relative on last
+        """
+        Return time when current key is reset (relative on last
         actual request).
         """
         try:
-            date = int(self._header['X-RateLimit-Reset'])
-            return strftime('%Y-%m-%d %H:%M:%S', localtime(date))
+            date = int(self._header["X-RateLimit-Reset"])
+            return strftime("%Y-%m-%d %H:%M:%S", localtime(date))
         except AttributeError:
             return None
 
@@ -183,31 +194,40 @@ def _get_all_refs(url: str, params: dict, verbose: bool, resp: dict, **kwds) -> 
     # Max refs per query are 40
     # Use of refcount leads to errors
     res = resp.json()
-    path_total_references = ['abstracts-retrieval-response', 'references', '@total-references']
+    path_total_references = [
+        "abstracts-retrieval-response",
+        "references",
+        "@total-references",
+    ]
     try:
         n = int(parse_content.chained_get(res, path_total_references))
     except TypeError:
         return res
 
     data = res  # data is used to gather all responses. res is a tmp variable
-    path_reference = ['abstracts-retrieval-response', 'references', 'reference']
+    path_reference = ["abstracts-retrieval-response", "references", "reference"]
     ref_len = len(parse_content.chained_get(data, path_reference))
-    n_chunks = ceil(n/ref_len)
+    n_chunks = ceil(n / ref_len)
 
-    for i in tqdm(range(1, n_chunks), disable=not verbose,
-                  initial=1, total=n_chunks):
+    for i in tqdm(range(1, n_chunks), disable=not verbose, initial=1, total=n_chunks):
         # Increment startref
-        kwds['startref'] = str(int(kwds['startref']) + ref_len)
+        kwds["startref"] = str(int(kwds["startref"]) + ref_len)
         # Get
-        resp = get_content(url, 'AbstractRetrieval', params, **kwds)
+        resp = get_content(url, "AbstractRetrieval", params, **kwds)
         res = resp.json()
         res = parse_content.chained_get(res, path_reference)
         # Append
-        data['abstracts-retrieval-response']['references']['reference'].extend(listify(res))
+        data["abstracts-retrieval-response"]["references"]["reference"].extend(
+            listify(res)
+        )
         if verbose:
-            print(f'Extracted:\n\tFrom: {kwds["startref"]}\n\tTo:{len(parse_content.chained_get(data, ["abstracts-retrieval-response", "references", "reference"]))}')
+            print(
+                f"Extracted:\n\tFrom: {kwds['startref']}\n\tTo:{len(parse_content.chained_get(data, ['abstracts-retrieval-response', 'references', 'reference']))}"
+            )
 
     if verbose:
-        print(f'Total data: {len(parse_content.chained_get(data, ["abstracts-retrieval-response", "references", "reference"]))}')
+        print(
+            f"Total data: {len(parse_content.chained_get(data, ['abstracts-retrieval-response', 'references', 'reference']))}"
+        )
 
     return data

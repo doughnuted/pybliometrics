@@ -1,3 +1,4 @@
+"""The scopus module contains classes to access Scopus APIs."""
 from pybliometrics.scopus.abstract_citation import (
     CitationOverview,
     _maybe_return_list,
@@ -35,7 +36,7 @@ from pybliometrics.utils import (
     chained_get,
     check_field_consistency,
     check_integrity,
-    check_parameter_value,
+check_parameter_value,
     deduplicate,
     detect_id_type,
     filter_digits,

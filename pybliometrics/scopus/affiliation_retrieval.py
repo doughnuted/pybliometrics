@@ -2,35 +2,44 @@ from collections import namedtuple
 from typing import Optional, Union
 
 from pybliometrics.superclasses import Retrieval
-from pybliometrics.utils import chained_get, check_parameter_value, \
-    get_id, get_link, parse_date_created, make_int_if_possible, VIEWS
+from pybliometrics.utils import (
+    VIEWS,
+    chained_get,
+    check_parameter_value,
+    get_id,
+    get_link,
+    make_int_if_possible,
+    parse_date_created,
+)
 
 
 class AffiliationRetrieval(Retrieval):
     @property
     def address(self) -> Optional[str]:
         """The address of the affiliation."""
-        return self._json.get('address')
+        return self._json.get("address")
 
     @property
     def affiliation_name(self) -> str:
         """The name of the affiliation."""
-        return self._json.get('affiliation-name')
+        return self._json.get("affiliation-name")
 
     @property
     def author_count(self) -> int:
         """Number of authors associated with the affiliation."""
-        return make_int_if_possible(chained_get(self._json, ['coredata', 'author-count']))
+        return make_int_if_possible(
+            chained_get(self._json, ["coredata", "author-count"])
+        )
 
     @property
     def city(self) -> Optional[str]:
         """The city of the affiliation."""
-        return self._json.get('city')
+        return self._json.get("city")
 
     @property
     def country(self) -> Optional[str]:
         """The country of the affiliation."""
-        return self._json.get('country')
+        return self._json.get("country")
 
     @property
     def date_created(self) -> Optional[tuple[int, int, int]]:
@@ -43,20 +52,23 @@ class AffiliationRetrieval(Retrieval):
     @property
     def document_count(self) -> int:
         """Number of documents for the affiliation."""
-        return make_int_if_possible(chained_get(self._json, ['coredata', 'document-count']))
-    
+        return make_int_if_possible(
+            chained_get(self._json, ["coredata", "document-count"])
+        )
+
     @property
     def document_entitlement_status(self) -> Optional[str]:
-        """Returns the document entitlement status, i.e. tells if the requestor 
+        """
+        Returns the document entitlement status, i.e. tells if the requestor
         is entitled to the requested resource.
         Note: Only works with `ENTITLED` view.
         """
-        return chained_get(self._json, ['document-entitlement', 'status'])
+        return chained_get(self._json, ["document-entitlement", "status"])
 
     @property
     def eid(self) -> str:
         """The EID of the affiliation."""
-        return chained_get(self._json, ['coredata', 'eid'])
+        return chained_get(self._json, ["coredata", "eid"])
 
     @property
     def identifier(self) -> int:
@@ -65,37 +77,42 @@ class AffiliationRetrieval(Retrieval):
 
     @property
     def name_variants(self) -> Optional[list[namedtuple]]:
-        """A list of namedtuples representing variants of the `affiliation_name`
+        """
+        A list of namedtuples representing variants of the `affiliation_name`
         with number of documents referring to this variant.
         """
-        variant = namedtuple('Variant', 'name doc_count')
-        path = ['name-variants', 'name-variant']
-        variants = [variant(name=var['$'],
-                            doc_count=make_int_if_possible(var.get('@doc-count')))
-                    for var in chained_get(self._json, path, [])]
+        variant = namedtuple("Variant", "name doc_count")
+        path = ["name-variants", "name-variant"]
+        variants = [
+            variant(
+                name=var["$"], doc_count=make_int_if_possible(var.get("@doc-count"))
+            )
+            for var in chained_get(self._json, path, [])
+        ]
         return variants or None
 
     @property
     def org_domain(self) -> Optional[str]:
         """Internet domain of the affiliation.  Requires the STANDARD view."""
-        return self._profile.get('org-domain')
+        return self._profile.get("org-domain")
 
     @property
     def org_type(self) -> Optional[str]:
-        """Type of the affiliation.  Requires the STANDARD view and only
+        """
+        Type of the affiliation.  Requires the STANDARD view and only
         present if `profile` is `org profile`.
         """
-        return self._profile.get('org-type')
+        return self._profile.get("org-type")
 
     @property
     def org_URL(self) -> Optional[str]:
         """Website of the affiliation.  Requires the STANDARD view."""
-        return self._profile.get('org-URL')
+        return self._profile.get("org-URL")
 
     @property
     def postal_code(self) -> Optional[str]:
         """The postal code of the affiliation.  Requires the STANDARD view."""
-        return chained_get(self._profile, ['address', 'postal-code'])
+        return chained_get(self._profile, ["address", "postal-code"])
 
     @property
     def scopus_affiliation_link(self) -> str:
@@ -114,10 +131,11 @@ class AffiliationRetrieval(Retrieval):
 
     @property
     def state(self) -> Optional[str]:
-        """The state (country's administrative sububunit)
+        """
+        The state (country's administrative sububunit)
         of the affiliation.   Requires the STANDARD view.
         """
-        return chained_get(self._profile, ['address', 'state'])
+        return chained_get(self._profile, ["address", "state"])
 
     @property
     def status(self) -> Optional[str]:
@@ -125,23 +143,26 @@ class AffiliationRetrieval(Retrieval):
 
     @property
     def sort_name(self) -> Optional[str]:
-        """The name of the affiliation used for sorting.  Requires the
+        """
+        The name of the affiliation used for sorting.  Requires the
         STANDARD view.
         """
-        return self._profile.get('sort-name')
+        return self._profile.get("sort-name")
 
     @property
     def url(self) -> str:
         """URL to the affiliation's API page."""
-        return chained_get(self._json, ['coredata', 'prism:url'])
+        return chained_get(self._json, ["coredata", "prism:url"])
 
-    def __init__(self,
-                 aff_id: Union[int, str],
-                 refresh: Union[bool, int] = False,
-                 view: str = "STANDARD",
-                 **kwds: str
-                 ) -> None:
-        """Interaction with the Affiliation Retrieval API.
+    def __init__(
+        self,
+        aff_id: Union[int, str],
+        refresh: Union[bool, int] = False,
+        view: str = "STANDARD",
+        **kwds: str,
+    ) -> None:
+        """
+        Interaction with the Affiliation Retrieval API.
 
         :param aff_id: Scopus ID or EID of the affiliation profile.
         :param refresh: Whether to refresh the cached file if it exists or not.
@@ -167,23 +188,26 @@ class AffiliationRetrieval(Retrieval):
         -----
         The directory for cached results is `{path}/{view}/{aff_id}`,
         where `path` is specified in your configuration file.
+
         """
         # Checks
-        check_parameter_value(view, VIEWS['AffiliationRetrieval'], "view")
+        check_parameter_value(view, VIEWS["AffiliationRetrieval"], "view")
 
         # Load json
         self._view = view
         self._refresh = refresh
-        aff_id = str(int(str(aff_id).split('-')[-1]))
+        aff_id = str(int(str(aff_id).split("-")[-1]))
         Retrieval.__init__(self, aff_id, **kwds)
-        if self._view in ('LIGHT', 'STANDARD'):
-            self._json = self._json['affiliation-retrieval-response']
+        if self._view in ("LIGHT", "STANDARD"):
+            self._json = self._json["affiliation-retrieval-response"]
         self._profile = self._json.get("institution-profile", {})
 
     def __str__(self):
         """Return a summary string."""
         date = self.get_cache_file_mdate().split()[0]
-        s = f"{self.affiliation_name} in {self.city} in {self.country},\nhas "\
-            f"{int(self.author_count):,} associated author(s) and "\
+        s = (
+            f"{self.affiliation_name} in {self.city} in {self.country},\nhas "
+            f"{int(self.author_count):,} associated author(s) and "
             f"{int(self.document_count):,} associated document(s) as of {date}"
+        )
         return s

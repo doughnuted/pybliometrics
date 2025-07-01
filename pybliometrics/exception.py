@@ -1,5 +1,6 @@
 """Base exceptions and classes for pybliometrics.scopus."""
 
+
 # Base classes
 class ScopusException(Exception):
     """Base class for exceptions in pybliometrics."""
@@ -40,7 +41,8 @@ class Scopus407Error(ScopusHtmlError):
 
 
 class Scopus413Error(ScopusHtmlError):
-    """Raised if a query yields a 413 error (Request Entity Too
+    """
+    Raised if a query yields a 413 error (Request Entity Too
     Large for url).
     """
 

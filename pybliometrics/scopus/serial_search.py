@@ -2,18 +2,19 @@ from collections import OrderedDict
 from typing import Optional, Union
 
 from pybliometrics.superclasses import Search
-from pybliometrics.utils import check_parameter_value, make_search_summary, VIEWS
+from pybliometrics.utils import VIEWS, check_parameter_value, make_search_summary
 
 
 class SerialSearch(Search):
     @property
     def results(self) -> Optional[list[OrderedDict[str, str]]]:
-        """A list of OrderedDicts representing results of serial search. The
+        """
+        A list of OrderedDicts representing results of serial search. The
         number of keys may vary from one search result to another depending
         on the length of yearly data.
         """
         out = []
-        search_results = self._json['serial-metadata-response'].get('entry', [])
+        search_results = self._json["serial-metadata-response"].get("entry", [])
         for result in search_results:
             # OrderedDict to populate with individual serial data
             obs = OrderedDict()
@@ -21,24 +22,24 @@ class SerialSearch(Search):
                 if not value:
                     continue
                 key = key.split(":", 1)[-1]
-                if key == '@_fa':
+                if key == "@_fa":
                     continue
-                elif key == 'subject-area':
+                if key == "subject-area":
                     subject_data = _merge_subject_data(value)
-                    obs['subject_area_codes'] = subject_data[0]
-                    obs['subject_area_abbrevs'] = subject_data[1]
-                    obs['subject_area_names'] = subject_data[2]
-                elif key == 'SNIPList' or key == 'SJRList':
+                    obs["subject_area_codes"] = subject_data[0]
+                    obs["subject_area_abbrevs"] = subject_data[1]
+                    obs["subject_area_names"] = subject_data[2]
+                elif key == "SNIPList" or key == "SJRList":
                     for j in _retrieve_source_rankings(value):
                         obs[j[0]] = j[1]
-                elif key == 'citeScoreYearInfoList':
+                elif key == "citeScoreYearInfoList":
                     for j in _retrieve_cite_scores(value):
                         obs[j[0]] = j[1]
-                elif key == 'link':
+                elif key == "link":
                     for j in _retrieve_links(value):
                         obs[j[0]] = j[1]
-                elif key == 'yearly-data':
-                    time_data = _retrieve_yearly_data(value.get('info', []))
+                elif key == "yearly-data":
+                    time_data = _retrieve_yearly_data(value.get("info", []))
                     for j in time_data:
                         obs[j[0]] = j[1]
                 else:
@@ -47,13 +48,15 @@ class SerialSearch(Search):
                 out.append(obs)
         return out or None
 
-    def __init__(self,
-                 query: dict,
-                 refresh: Union[bool, int] = False,
-                 view: str = 'ENHANCED',
-                 **kwds: str
-                 ) -> None:
-        """Interaction with the Serial Title API.
+    def __init__(
+        self,
+        query: dict,
+        refresh: Union[bool, int] = False,
+        view: str = "ENHANCED",
+        **kwds: str,
+    ) -> None:
+        """
+        Interaction with the Serial Title API.
 
         :param query:  Query parameters and corresponding fields. Allowed keys
                       'title', 'issn', 'pub', 'subj', 'subjCode', 'content',
@@ -85,58 +88,72 @@ class SerialSearch(Search):
         where `path` is specified in your configuration file, and `fname` is
         the md5-hashed version of `query` dict turned into string in format
         of `'key=value'` delimited by `'&'`.
+
         """
         # Checks
-        allowed_query_keys = ('title', 'issn', 'date', 'pub', 'subj',
-                              'subjCode', 'content', 'oa')
-        invalid = [k for k in query.keys() if k not in allowed_query_keys]
+        allowed_query_keys = (
+            "title",
+            "issn",
+            "date",
+            "pub",
+            "subj",
+            "subjCode",
+            "content",
+            "oa",
+        )
+        invalid = [k for k in query if k not in allowed_query_keys]
         if invalid:
             raise ValueError(f'Query key(s) "{", ".join(invalid)}" invalid')
-        check_parameter_value(view, VIEWS['SerialSearch'], "view")
+        check_parameter_value(view, VIEWS["SerialSearch"], "view")
 
         # Query
         self._query = str(query)
         self._refresh = refresh
         self._view = view
         Search.__init__(self, query=query, **kwds)
-        self._n = len(self._json['serial-metadata-response'].get('entry', []))
+        self._n = len(self._json["serial-metadata-response"].get("entry", []))
 
     def __str__(self):
         """Print a summary string."""
-        titles = [d['title'] for d in self.results]
+        titles = [d["title"] for d in self.results]
         return make_search_summary(self, "source", titles)
 
 
 def _merge_subject_data(subject_area_data):
-    """Auxiliary function to collect and concatenate subject area data into string.
+    """
+    Auxiliary function to collect and concatenate subject area data into string.
 
     Returns tuple of strings for subject area names, subject area codes and
     subject area abbreviations deliminated by `';'`.
     """
-    codes = set([j.get('@code') for j in subject_area_data])
-    abbrevs = set([j.get('@abbrev') for j in subject_area_data])
-    names = set([j.get('$') for j in subject_area_data])
-    return (';'.join(filter(None, codes)),
-            ';'.join(filter(None, abbrevs)),
-            ';'.join(filter(None, names)))
+    codes = set([j.get("@code") for j in subject_area_data])
+    abbrevs = set([j.get("@abbrev") for j in subject_area_data])
+    names = set([j.get("$") for j in subject_area_data])
+    return (
+        ";".join(filter(None, codes)),
+        ";".join(filter(None, abbrevs)),
+        ";".join(filter(None, names)),
+    )
 
 
 def _retrieve_links(link_data):
-    """Auxiliary function to collect data on links.
+    """
+    Auxiliary function to collect data on links.
 
     Returns list of lists in the form of `[linkname, link]`.
     """
     out = []
     for sl in link_data:
         try:
-            out.append([sl['@ref'], sl.get('@href')])
+            out.append([sl["@ref"], sl.get("@href")])
         except KeyError:
             continue
     return out or None
 
 
 def _retrieve_yearly_data(yearly_data):
-    """Auxiliary function to collect yearly data.
+    """
+    Auxiliary function to collect yearly data.
 
     Returns list of lists in the form `[mergedstatname, stat]`, where
     `mergedstatname` - dictionary key joined with associated period.
@@ -144,13 +161,14 @@ def _retrieve_yearly_data(yearly_data):
     out = []
     for t in yearly_data:
         for key in t:
-            if key not in ('@year', '@_fa'):
+            if key not in ("@year", "@_fa"):
                 out.append([f"{key}_{t['@year']}", t[key]])
     return out or None
 
 
 def _retrieve_cite_scores(cite_score_data):
-    """Auxiliary function to collect citescore data.
+    """
+    Auxiliary function to collect citescore data.
 
     Returns list of lists in the form `[mergedstatname, stat]`, where
     `mergedstatname` - dictionary key joined with associated period.
@@ -167,7 +185,8 @@ def _retrieve_cite_scores(cite_score_data):
 
 
 def _retrieve_source_rankings(source_data):
-    """Auxiliary function to collect SNIP and SJR data.
+    """
+    Auxiliary function to collect SNIP and SJR data.
 
     Returns list of lists in the form `[mergedstatname, stat]`,
     where `mergedstatname` - dictionary key joined with associated period
@@ -176,5 +195,5 @@ def _retrieve_source_rankings(source_data):
     for key in source_data:
         stats = source_data[key]
         for t in stats:
-            out.append([f"{key}_['@year']", t['$']])
+            out.append([f"{key}_['@year']", t["$"]])
     return out or None

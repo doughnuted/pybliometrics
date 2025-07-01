@@ -2,17 +2,24 @@ from collections import namedtuple
 from typing import Optional, Union
 
 from pybliometrics.superclasses import Search
-from pybliometrics.utils import check_field_consistency, chained_get, \
-    check_integrity, check_parameter_value, deduplicate, \
-    make_search_summary, VIEWS
+from pybliometrics.utils import (
+    VIEWS,
+    chained_get,
+    check_field_consistency,
+    check_integrity,
+    check_parameter_value,
+    deduplicate,
+    make_search_summary,
+)
 
 
 class ScienceDirectSearch(Search):
     @property
     def results(self) -> Optional[list[namedtuple]]:
-        """A list of namedtuples in the form `(authors first_author doi title link
-        load_date openaccess_status pii coverDate endingPage publicationName startingPage
-        api_link volume)`.
+        """
+        A list of namedtuples in the form `(authors first_author doi title link
+        load_date openaccess_status pii coverDate endingPage publicationName
+        startingPage api_link volume")`.
 
         Field definitions correspond to the `ScienceDirect Search Views
         <https://dev.elsevier.com/sd_search_views.htmll>`__ and return the
@@ -28,10 +35,13 @@ class ScienceDirectSearch(Search):
         -----
         The list of authors and the list of affiliations per author are
         deduplicated.
+
         """
-        fields = 'authors first_author doi title link load_date openaccess_status pii '\
-            'coverDate endingPage publicationName startingPage api_link volume'
-        doc = namedtuple('Document', fields)
+        fields = (
+            "authors first_author doi title link load_date openaccess_status pii "
+            "coverDate endingPage publicationName startingPage api_link volume"
+        )
+        doc = namedtuple("Document", fields)
         check_field_consistency(self._integrity, fields)
         # Parse elements one-by-one
         out = []
@@ -39,20 +49,24 @@ class ScienceDirectSearch(Search):
             # Get authors and create ";" separated string
             authors_list = self._get_authors(item)
             authors_list = deduplicate(authors_list)
-            authors = ';'.join(authors_list)
+            authors = ";".join(authors_list)
             # Get links
-            links_found = item.get('link')
-            links = {'api_link': None, 'scidir': None}
+            links_found = item.get("link")
+            links = {"api_link": None, "scidir": None}
             for link in links_found:
-                if link.get('@ref') == 'self':
-                    links['api_link'] = link.get('@href')
-                elif link.get('@ref') == 'scidir':
-                    links['scidir'] = link.get('@href')
+                if link.get("@ref") == "self":
+                    links["api_link"] = link.get("@href")
+                elif link.get("@ref") == "scidir":
+                    links["scidir"] = link.get("@href")
             # Get doi
-            doi = item.get("prism:doi") or item.get("dc:identifier")[4:] if item.get("dc:identifier") else None
+            doi = (
+                item.get("prism:doi") or item.get("dc:identifier")[4:]
+                if item.get("dc:identifier")
+                else None
+            )
             new = doc(
                 authors=authors,
-                first_author=item.get('dc:creator'),
+                first_author=item.get("dc:creator"),
                 doi=doi,
                 title=item.get("dc:title"),
                 link=links["scidir"],
@@ -64,24 +78,26 @@ class ScienceDirectSearch(Search):
                 publicationName=item.get("prism:publicationName"),
                 startingPage=item.get("prism:startingPage"),
                 api_link=links["api_link"] or item.get("prism:url"),
-                volume=item.get("prism:volume")
+                volume=item.get("prism:volume"),
             )
             out.append(new)
         check_integrity(out, self._integrity, self._action)
         return out or None
 
-    def __init__(self,
-                 query: str,
-                 refresh: Union[bool, int] = False,
-                 view: Optional[str] = None,
-                 verbose: bool = False,
-                 download: bool = True,
-                 integrity_fields: Optional[Union[list[str], tuple[str, ...]]] = None,
-                 integrity_action: str = "raise",
-                 subscriber: bool = True,
-                 **kwds: str
-                 ) -> None:
-        """Interaction with the ScienceDirect Search API. This represents a search against the
+    def __init__(
+        self,
+        query: str,
+        refresh: Union[bool, int] = False,
+        view: Optional[str] = None,
+        verbose: bool = False,
+        download: bool = True,
+        integrity_fields: Optional[Union[list[str], tuple[str, ...]]] = None,
+        integrity_action: str = "raise",
+        subscriber: bool = True,
+        **kwds: str,
+    ) -> None:
+        """
+        Interaction with the ScienceDirect Search API. This represents a search against the
         ScienceDirect cluster, which contains serial/nonserial full-text articles. Note that this API
         replicates the search experience on `ScienceDirect <www.sciencedirect.com>`__.
 
@@ -130,10 +146,11 @@ class ScienceDirectSearch(Search):
 
         The ScienceDirect Search API V2 has two available interfaces: `PUT` and `GET`. This library uses the
         `GET` interface.
+
         """
         # Check view or set to default
         if view:
-            check_parameter_value(view, VIEWS['ScienceDirectSearch'], "view")
+            check_parameter_value(view, VIEWS["ScienceDirectSearch"], "view")
         else:
             view = "STANDARD"
 
@@ -154,13 +171,18 @@ class ScienceDirectSearch(Search):
 
     def get_dois(self):
         """DOIs of retrieved documents."""
-        return [d.get("prism:doi") or d.get("dc:identifier")[4:] if d.get("dc:identifier") else None for d in self._json]
+        return [
+            d.get("prism:doi") or d.get("dc:identifier")[4:]
+            if d.get("dc:identifier")
+            else None
+            for d in self._json
+        ]
 
     def _get_authors(self, item: dict) -> list:
         """Auxiliary function to get the authors."""
-        authors_data = chained_get(item, ['authors', 'author'], [])
+        authors_data = chained_get(item, ["authors", "author"], [])
         if isinstance(authors_data, list):
-            authors_list = [a.get('$') for a in authors_data]
+            authors_list = [a.get("$") for a in authors_data]
         elif isinstance(authors_data, str):
             authors_list = [authors_data]
         else:

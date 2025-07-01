@@ -1,4 +1,5 @@
-"""Tests for sciencedirect.ArticleMetadata"""
+"""Tests for sciencedirect.ArticleMetadata."""
+
 from collections import namedtuple
 
 from pybliometrics.exception import Scopus400Error
@@ -6,13 +7,17 @@ from pybliometrics.sciencedirect import ArticleMetadata, init
 
 init()
 
-am_standard = ArticleMetadata('TITLE("Bayesian Network") AND YEAR(2015)',
-                              view="STANDARD",
-                              refresh=30)
-am_complete = ArticleMetadata('AFFIL("MIT") AND YEAR("2023") AND DOI(10.1016/B978-0-32-399851-2.00030-2)',
-                              view="COMPLETE",
-                              refresh=30)
-am_empty = ArticleMetadata('TITLE("Not a very realistic title")', view="STANDARD", refresh=30)
+am_standard = ArticleMetadata(
+    'TITLE("Bayesian Network") AND YEAR(2015)', view="STANDARD", refresh=30
+)
+am_complete = ArticleMetadata(
+    'AFFIL("MIT") AND YEAR("2023") AND DOI(10.1016/B978-0-32-399851-2.00030-2)',
+    view="COMPLETE",
+    refresh=30,
+)
+am_empty = ArticleMetadata(
+    'TITLE("Not a very realistic title")', view="STANDARD", refresh=30
+)
 
 
 def test_empty_results():
@@ -94,11 +99,13 @@ def test_all_fields():
 
 
 def test_field_consistency():
-    am_wrong_field = ArticleMetadata('TITLE("Bayesian Network") AND YEAR(2015)',
-                                 integrity_fields=["notExistingField"],
-                                 integrity_action="warn",
-                                 view="STANDARD",
-                                 refresh=30)
+    am_wrong_field = ArticleMetadata(
+        'TITLE("Bayesian Network") AND YEAR(2015)',
+        integrity_fields=["notExistingField"],
+        integrity_action="warn",
+        view="STANDARD",
+        refresh=30,
+    )
     try:
         am_wrong_field.results
     except ValueError:
@@ -115,11 +122,12 @@ def test_length():
 
 
 def test_string():
-    part_of_str = 'Search \'AFFIL("MIT") AND YEAR("2023") AND DOI(10.1016/B978-0-32-399851-2.00030-2)\' yielded 1 document as of'
+    part_of_str = ('Search \'AFFIL("MIT") AND YEAR("2023") AND '                   'DOI(10.1016/B978-0-32-399851-2.00030-2)\' yielded 1 document as of')
     assert part_of_str in am_complete.__str__()
 
 
-def test_wrong_query():
+def test_wrong_query() -> None:
+    """Test that wrong queries raise Scopus400Error."""
     try:
         ArticleMetadata(
             'TITLE("Bayesian Network") AND YEAR(2015', view="STANDARD", refresh=30

@@ -14,7 +14,8 @@ from pybliometrics.utils import (
 class AuthorSearch(Search):
     @property
     def authors(self) -> Optional[list[namedtuple]]:
-        """A list of namedtuples storing author information,
+        """
+        A list of namedtuples storing author information,
         where each namedtuple corresponds to one author.
         The information in each namedtuple is `(eid orcid surname initials givenname
         documents affiliation affiliation_id city country areas)`.
@@ -76,7 +77,8 @@ class AuthorSearch(Search):
         integrity_action: str = "raise",
         **kwds: str,
     ) -> None:
-        """Interaction with the Author Search API.
+        """
+        Interaction with the Author Search API.
 
         :param query: A string of the query.  For allowed fields and values see
                       https://dev.elsevier.com/sc_author_search_tips.html.

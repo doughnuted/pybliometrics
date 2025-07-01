@@ -1,31 +1,35 @@
 """Module with the class SubjectClassifications."""
+
 from typing import Optional, Union
 
 from pybliometrics import scopus
 
 
 class SubjectClassifications(scopus.SubjectClassifications):
-    def __init__(self,
-                 query: dict,
-                 refresh: Union[bool, int] = False,
-                 fields: Optional[Union[list[str], tuple[str, ...]]] = None,
-                 **kwds: str
-                 ) -> None:
-        """Interaction with the ScienceDirect Subject Classifications API.
+    def __init__(
+        self,
+        query: dict,
+        *,
+        refresh: Union[bool, int] = False,
+        fields: Optional[Union[list[str], tuple[str, ...]]] = None,
+        **kwds: str,
+    ) -> None:
+        """
+        Interaction with the ScienceDirect Subject Classifications API.
 
         :param query: Query parameters and corresponding fields. Allowed keys
                       `'code'`, `'abbrev'`, `'description'`, `'detail'`. For more
-                      details on search fields please refer to the `documentation 
+                      details on search fields please refer to the `documentation
                       <https://dev.elsevier.com/documentation/SubjectClassificationsAPI.wadl#d1e199>`__.
         :param refresh: Whether to refresh the cached file if it exists or not.
                         If int is passed, cached file will be refreshed if the
                         number of days since last modification exceeds that value.
         :param fields: The fields to return when calling search results.
                        Allowed values: `'code'`, `'abbrev'`, `'description'`,
-                       `'detail'`.  For details see the `documentation 
+                       `'detail'`.  For details see the `documentation
                        <https://dev.elsevier.com/documentation/SubjectClassificationsAPI.wadl#d1e199>`__.
         :param kwds: Keywords passed on as query parameters.  Must contain
-                     fields and values mentioned in the `API specification 
+                     fields and values mentioned in the `API specification
                      <https://dev.elsevier.com/documentation/SubjectClassificationsAPI.wadl>`__.
 
         Raises
@@ -43,6 +47,7 @@ class SubjectClassifications(scopus.SubjectClassifications):
         where `path` is specified in your configuration file, and `fname` is
         the md5-hashed version of `query` dict turned into string in format
         of `'key=value'` delimited by `'&'`.
+
         """
-        self.__class__.__name__ = 'ScDirSubjectClassifications'
+        self.__class__.__name__ = "ScDirSubjectClassifications"
         super().__init__(query=query, refresh=refresh, fields=fields, **kwds)

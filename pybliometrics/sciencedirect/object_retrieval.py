@@ -14,14 +14,16 @@ class ObjectRetrieval(Retrieval):
         """The object retrieved."""
         return BytesIO(self._object)
 
-    def __init__(self,
-                 identifier: Union[int, str],
-                 filename: str,
-                 id_type: Optional[str] = None,
-                 refresh: Union[bool, int] = False,
-                 **kwds: str
-                 ):
-        """Class to retrieve a specific object of a document by its filename.
+    def __init__(
+        self,
+        identifier: Union[int, str],
+        filename: str,
+        id_type: Optional[str] = None,
+        refresh: Union[bool, int] = False,
+        **kwds: str,
+    ):
+        """
+        Class to retrieve a specific object of a document by its filename.
 
         :param identifier: The indentifier of the document.
         :param filename: Filename of the object to be retrieved.  To get a list
@@ -29,34 +31,36 @@ class ObjectRetrieval(Retrieval):
                          corresponding filename) use the class `ObjectMetadata`.
         :param id_type: Document identifier.  Allowed values: `doi`, `pii`,
                         `scopus_id`, `pubmed_id`, `eid`.
-        :param refresh: Whether to refresh the cached file if it exists.  Default: False.
+        :param refresh: Whether to refresh the cached file if it exists.  Default: `False`.
         """
         identifier = str(identifier)
 
         if id_type is None:
             id_type = detect_id_type(identifier)
         else:
-            allowed_id_types = ('doi', 'pii', 'scopus_id', 'pubmed_id', 'eid')
+            allowed_id_types = ("doi", "pii", "scopus_id", "pubmed_id", "eid")
             check_parameter_value(id_type, allowed_id_types, "id_type")
 
-        if id_type != 'eid':
+        if id_type != "eid":
             identifier = self._get_eid(identifier)
-        file_identifier = f'{identifier}-{filename}'
+        file_identifier = f"{identifier}-{filename}"
 
         self._identifier = identifier
         self._filename = filename
-        self._view = ''
+        self._view = ""
         self._refresh = refresh
 
-        super().__init__(file_identifier, 'eid', **kwds)
+        super().__init__(file_identifier, "eid", **kwds)
 
     def _get_eid(self, identifier: str) -> str:
         """Get the EID of a document."""
-        am = ArticleRetrieval(identifier, field='eid')
+        am = ArticleRetrieval(identifier, field="eid")
         return am.eid
 
     def __str__(self) -> str:
         """Return a string with the filename, document and object size in KB."""
         size_kb = f"{len(self._object) / 1024:.1f}" if self._object else "0.0"
-        return (f"Object {self._filename} from document with EID {self._identifier}"
-                f" has size of {size_kb} KB.")
+        return (
+            f"Object {self._filename} from document with EID {self._identifier}"
+            f" has size of {size_kb} KB."
+        )

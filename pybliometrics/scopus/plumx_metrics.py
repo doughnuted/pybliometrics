@@ -8,7 +8,8 @@ from pybliometrics.utils import check_parameter_value
 class PlumXMetrics(Retrieval):
     @property
     def category_totals(self) -> Optional[list[namedtuple]]:
-        """A list of namedtuples representing total metrics as categorized
+        """
+        A list of namedtuples representing total metrics as categorized
         by PlumX Metrics in the form `(capture, citation, mention, socialMedia,
         usage)`.
 
@@ -16,70 +17,77 @@ class PlumXMetrics(Retrieval):
         is shown.  For details on PlumX Metrics categories see
         https://plumanalytics.com/learn/about-metrics/.
         """
-        categories = self._json.get('count_categories', [])
+        categories = self._json.get("count_categories", [])
         return _format_as_namedtuple_list(categories, "Category") or None
 
     @property
     def capture(self) -> Optional[list[namedtuple]]:
-        """A list of namedtuples representing metrics in the Captures category.
+        """
+        A list of namedtuples representing metrics in the Captures category.
 
         Note: For details on Capture metrics see
         https://plumanalytics.com/learn/about-metrics/capture-metrics/.
         """
-        metrics = self._count_categories.get('capture', [])
+        metrics = self._count_categories.get("capture", [])
         return _format_as_namedtuple_list(metrics) or None
 
     @property
     def citation(self) -> Optional[list[namedtuple]]:
-        """A list of namedtuples representing citation counts from
+        """
+        A list of namedtuples representing citation counts from
         different sources.
 
         Note: For details on Citation metrics see
         https://plumanalytics.com/learn/about-metrics/citation-metrics/.
         """
         metrics = []
-        for item in self._count_categories.get('citation', []):
-            if item.get('sources'):
-                metrics += item['sources']
+        for item in self._count_categories.get("citation", []):
+            if item.get("sources"):
+                metrics += item["sources"]
         return _format_as_namedtuple_list(metrics) or None
 
     @property
     def mention(self) -> Optional[list[namedtuple]]:
-        """A list of namedtuples representing metrics in Mentions category.
+        """
+        A list of namedtuples representing metrics in Mentions category.
 
         Note: For details on Mention metrics see
         https://plumanalytics.com/learn/about-metrics/mention-metrics/.
         """
-        metrics = self._count_categories.get('mention', [])
+        metrics = self._count_categories.get("mention", [])
         return _format_as_namedtuple_list(metrics) or None
 
     @property
     def social_media(self) -> Optional[list[namedtuple]]:
-        """A list of namedtuples representing social media metrics.
+        """
+        A list of namedtuples representing social media metrics.
 
         Note: For details on Social Media metrics see
         https://plumanalytics.com/learn/about-metrics/social-media-metrics/.
         """
-        metrics = self._count_categories.get('socialMedia', [])
+        metrics = self._count_categories.get("socialMedia", [])
         return _format_as_namedtuple_list(metrics) or None
 
     @property
     def usage(self) -> Optional[list[namedtuple]]:
-        """A list of namedtuples representing Usage category metrics.
+        """
+        A list of namedtuples representing Usage category metrics.
 
         Note: For details on Usage metrics see
         https://plumanalytics.com/learn/about-metrics/usage-metrics/.
         """
-        metrics = self._count_categories.get('usage', [])
+        metrics = self._count_categories.get("usage", [])
         return _format_as_namedtuple_list(metrics) or None
 
-    def __init__(self,
-                 identifier: str,
-                 id_type: str,
-                 refresh: Union[bool, int] = False,
-                 **kwds: str
-                 ) -> None:
-        """Interaction with the PlumX Metrics API.
+    def __init__(
+        self,
+        identifier: str,
+        id_type: str,
+        refresh: Union[bool, int] = False,
+        **kwds: str,
+    ) -> None:
+        """
+        Interaction with the PlumX Metrics API.
 
         :param identifier: The identifier of a document.
         :param id_type: The type of used ID. Allowed values are:
@@ -107,39 +115,64 @@ class PlumXMetrics(Retrieval):
         -----
         The directory for cached results is `{path}/ENHANCED/{identifier}`,
         where `path` is specified in your configuration file.
+
         """
         # Checks
-        allowed = ('airitiDocId', 'cabiAbstractId', 'citeulikeId',
-                   'digitalMeasuresArtifactId', 'doi', 'elsevierId',
-                   'elsevierPii', 'facebookCountUrlId', 'figshareArticleId',
-                   'isbn', 'lccn', 'medwaveId', 'nctId', 'oclc',
-                   'pittEprintDscholarId', 'pmcid', 'pmid', 'redditId',
-                   'repecHandle', 'repoUrl', 'scieloId', 'sdEid',
-                   'slideshareUrlId', 'smithsonianPddrId', 'ssrnId', 'urlId')
+        allowed = (
+            "airitiDocId",
+            "cabiAbstractId",
+            "citeulikeId",
+            "digitalMeasuresArtifactId",
+            "doi",
+            "elsevierId",
+            "elsevierPii",
+            "facebookCountUrlId",
+            "figshareArticleId",
+            "isbn",
+            "lccn",
+            "medwaveId",
+            "nctId",
+            "oclc",
+            "pittEprintDscholarId",
+            "pmcid",
+            "pmid",
+            "redditId",
+            "repecHandle",
+            "repoUrl",
+            "scieloId",
+            "sdEid",
+            "slideshareUrlId",
+            "smithsonianPddrId",
+            "ssrnId",
+            "urlId",
+        )
         check_parameter_value(id_type, allowed, "id_type")
         self._id_type = id_type
         self._identifier = identifier
 
         # Load json
         self._refresh = refresh
-        self._view = 'ENHANCED'
+        self._view = "ENHANCED"
         Retrieval.__init__(self, identifier=identifier, id_type=id_type, **kwds)
-        cats = self._json.get('count_categories', [])
-        self._count_categories = {d["name"]: d['count_types'] for d in cats}
+        cats = self._json.get("count_categories", [])
+        self._count_categories = {d["name"]: d["count_types"] for d in cats}
 
     def __str__(self):
         """Print a summary string."""
         s = f"Document with {self._id_type} {self._identifier} received:\n- "
-        cats = [f"{c.total:,} citation(s) in category '{c.name}'"
-                for c in self.category_totals]
+        cats = [
+            f"{c.total:,} citation(s) in category '{c.name}'"
+            for c in self.category_totals
+        ]
         s += "\n- ".join(cats)
         s += f"\nas of {self.get_cache_file_mdate().split()[0]}"
         return s
 
 
-def _format_as_namedtuple_list(metric_counts, tuple_name='Metric'):
-    """Formats list of dicts of metrics into list of namedtuples in the
+def _format_as_namedtuple_list(metric_counts, tuple_name="Metric"):
+    """
+    Formats list of dicts of metrics into list of namedtuples in the
     form `(name, total)`.
     """
-    metric = namedtuple(tuple_name, 'name total')
-    return [metric(name=t['name'], total=t['total']) for t in metric_counts]
+    metric = namedtuple(tuple_name, "name total")
+    return [metric(name=t["name"], total=t["total"]) for t in metric_counts]

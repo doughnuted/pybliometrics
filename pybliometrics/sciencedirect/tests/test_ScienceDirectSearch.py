@@ -1,4 +1,5 @@
 """Tests for sciencedirect.ScienceDirectSearch"""
+
 from collections import namedtuple
 
 from pybliometrics.exception import Scopus400Error
@@ -6,8 +7,14 @@ from pybliometrics.sciencedirect import ScienceDirectSearch, init
 
 init()
 
-sds_standard = ScienceDirectSearch('TITLE("Assessing LLMs in malicious code deobfuscation of real-world malware campaigns") AND DATE(2012)', view="STANDARD", refresh=30)
-sds_empty = ScienceDirectSearch('TITLE("Not a very realistic title")', view="STANDARD", refresh=30)
+sds_standard = ScienceDirectSearch(
+    'TITLE("Assessing LLMs in malicious code deobfuscation of real-world malware campaigns") AND DATE(2012)',
+    view="STANDARD",
+    refresh=30,
+)
+sds_empty = ScienceDirectSearch(
+    'TITLE("Not a very realistic title")', view="STANDARD", refresh=30
+)
 
 
 def test_empty_results():
@@ -16,8 +23,10 @@ def test_empty_results():
 
 
 def test_all_fields():
-    fields = 'authors first_author doi title link load_date openaccess_status pii '\
-        'coverDate endingPage publicationName startingPage api_link volume'
+    fields = (
+        "authors first_author doi title link load_date openaccess_status pii "
+        "coverDate endingPage publicationName startingPage api_link volume"
+    )
     doc = namedtuple("Document", fields)
 
     expected_standard_doc = doc(
@@ -40,11 +49,13 @@ def test_all_fields():
 
 
 def test_field_consistency():
-    am_wrong_field = ScienceDirectSearch('TITLE("Assessing LLMs in malicious code deobfuscation of real-world malware campaigns") AND DATE(2012)',
-                                 integrity_fields=["notExistingField"],
-                                 integrity_action="warn",
-                                 view="STANDARD",
-                                 refresh=30)
+    am_wrong_field = ScienceDirectSearch(
+        'TITLE("Assessing LLMs in malicious code deobfuscation of real-world malware campaigns") AND DATE(2012)',
+        integrity_fields=["notExistingField"],
+        integrity_action="warn",
+        view="STANDARD",
+        refresh=30,
+    )
     try:
         am_wrong_field.results
     except ValueError:
@@ -61,15 +72,17 @@ def test_length():
 
 
 def test_string():
-    str_start = ('Search \'TITLE("Assessing LLMs in malicious code deobfuscation of '
-    'real-world malware campaigns") AND DATE(2012)\' yielded 1 document as of')
+    str_start = (
+        "Search 'TITLE(\"Assessing LLMs in malicious code deobfuscation of "
+        "real-world malware campaigns\") AND DATE(2012)' yielded 1 document as of"
+    )
     assert sds_standard.__str__().startswith(str_start)
 
 
 def test_wrong_query():
     try:
         ScienceDirectSearch(
-            'Th(s querY - has M&ny ( Errors', view="STANDARD", refresh=30
+            "Th(s querY - has M&ny ( Errors", view="STANDARD", refresh=30
         )
     except Scopus400Error:
         pass

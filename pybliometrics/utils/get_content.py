@@ -46,7 +46,8 @@ def get_session() -> Type[Session]:
 
 
 def get_content(url, api, params=None, **kwds):
-    """Helper function to download a file and return its content.
+    """
+    Helper function to download a file and return its content.
 
     Parameters
     ----------
@@ -180,7 +181,8 @@ def get_content(url, api, params=None, **kwds):
 
 
 def detect_id_type(sid):
-    """Method that tries to infer the type of abstract ID.
+    """
+    Method that tries to infer the type of abstract ID.
 
     Parameters
     ----------
