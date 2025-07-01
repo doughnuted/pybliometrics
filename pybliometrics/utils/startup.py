@@ -2,23 +2,30 @@ import warnings
 from collections import deque
 from configparser import ConfigParser, NoOptionError, NoSectionError
 from pathlib import Path
-from typing import Optional, Type, Union
+from typing import Any, Deque, Dict, List, Optional, Tuple, Union
 
 from pybliometrics.utils.constants import CONFIG_FILE, DEFAULT_PATHS, RATELIMITS, VIEWS
 from pybliometrics.utils.create_config import create_config
 
-CONFIG = None
-CUSTOM_KEYS = None
-CUSTOM_INSTTOKENS = None
+CONFIG: Optional[ConfigParser] = None
+CUSTOM_KEYS: Optional[List[str]] = None
+CUSTOM_INSTTOKENS: Optional[List[str]] = None # Assuming InstTokens are strings like APIKeys
 
-_throttling_params = {k: deque(maxlen=v) for k, v in RATELIMITS.items()}
+# Using Deque for Python 3.9+, for older versions it would be deque
+_throttling_params: Dict[str, Deque[Any]] = {
+    k: deque(maxlen=v) for k, v in RATELIMITS.items()
+}
+
+
+def preserve_case_optionxform(optionstr: str) -> str:
+    return optionstr
 
 
 def init(
-    config_path: Union[str, Path] = None,
-    keys: Optional[list[str]] = None,
-    inst_tokens: Optional[list[str]] = None,
-    config_dir: Union[str, Path] = None,
+    config_path: Optional[Union[str, Path]] = None,
+    keys: Optional[List[str]] = None,
+    inst_tokens: Optional[List[str]] = None,
+    config_dir: Optional[Union[str, Path]] = None, # Deprecated
 ) -> None:
     """
     Function to initialize the pybliometrics library. For more information refer to the
@@ -49,19 +56,27 @@ def init(
         if config_path is None:
             config_path = config_dir
 
+    resolved_config_path: Path
     if not config_path:
-        config_path = CONFIG_FILE
-    config_path = Path(config_path)
+        resolved_config_path = CONFIG_FILE
+    elif isinstance(config_path, str):
+        resolved_config_path = Path(config_path)
+    else:
+        resolved_config_path = config_path
 
-    if not config_path.exists():
-        CONFIG = create_config(config_path, keys, inst_tokens)
+
+    if not resolved_config_path.exists():
+        CONFIG = create_config(resolved_config_path, keys, inst_tokens)
     else:
         CONFIG = ConfigParser()
-        CONFIG.optionxform = str
-        CONFIG.read(config_path)
+        CONFIG.optionxform = preserve_case_optionxform
+        CONFIG.read(resolved_config_path)
+
+    if CONFIG is None: # Should not happen if create_config always returns a ConfigParser
+        raise RuntimeError("Configuration could not be loaded or created.")
 
     check_sections(CONFIG)
-    check_default_paths(CONFIG, config_path)
+    check_default_paths(CONFIG, resolved_config_path)
     create_cache_folders(CONFIG)
 
     CUSTOM_KEYS = keys
@@ -69,34 +84,36 @@ def init(
     check_keys_tokens()
 
 
-def check_sections(config: Type[ConfigParser]) -> None:
+def check_sections(config: ConfigParser) -> None:
     """Auxiliary function to check if all sections exist."""
     for section in ["Directories", "Authentication", "Requests"]:
         if not config.has_section(section):
             raise NoSectionError(section)
 
 
-def check_default_paths(config: Type[ConfigParser], config_path: Path) -> None:
+def check_default_paths(config: ConfigParser, config_path: Path) -> None:
     """
     Auxiliary function to check if default cache paths exist.
     If not, the paths are writen in the config.
     """
-    for api, path in DEFAULT_PATHS.items():
+    modified = False
+    for api, path_str in DEFAULT_PATHS.items():
         if not config.has_option("Directories", api):
-            config.set("Directories", api, str(path))
-            with open(config_path, "w", encoding="utf-8") as ouf:
-                config.write(ouf)
+            config.set("Directories", api, str(path_str))
+            modified = True
+    if modified:
+        with open(config_path, "w", encoding="utf-8") as ouf:
+            config.write(ouf)
 
 
 def check_keys_tokens() -> None:
     """Auxiliary function to check if API keys or InstTokens are set."""
-    keys = get_keys()
-    insttokens = get_insttokens()
-    # 3 problematic cases
-    no_keys_no_insttokens = not keys and not insttokens
-    insttokens_no_keys = insttokens and not keys
-    keys_and_insttokens = keys and insttokens
-    keys_tokens_diff = len(keys) - len(insttokens)
+    keys_list = get_keys()
+    insttokens_list = get_insttokens() # Assuming this returns list of strings now
+
+    no_keys_no_insttokens = not keys_list and not insttokens_list
+    insttokens_no_keys = insttokens_list and not keys_list
+    keys_and_insttokens = keys_list and insttokens_list
 
     if no_keys_no_insttokens:
         raise ValueError(
@@ -113,26 +130,31 @@ def check_keys_tokens() -> None:
             "https://pybliometrics.readthedocs.io/en/stable/configuration.html"
         )
     if keys_and_insttokens:
-        if keys_tokens_diff < 0:
+        if len(keys_list) < len(insttokens_list):
             raise ValueError(
-                "More InstTokens than API keys found. "
+                "More InstTokens than API keys found, or lists are misaligned. "
                 "Please provide all the API keys that correspond to the InstTokens. "
                 "For more information visit: "
                 "https://pybliometrics.readthedocs.io/en/stable/configuration.html"
             )
 
 
-def create_cache_folders(config: Type[ConfigParser]) -> None:
+def create_cache_folders(config: ConfigParser) -> None:
     """Auxiliary function to create cache folders."""
-    for api, path in config.items("Directories"):
-        for view in VIEWS[api]:
-            view_path = Path(path, view)
-            view_path.mkdir(parents=True, exist_ok=True)
+    # config.items("Directories") returns list of (name, value)
+    for api, path_str_val in config.items("Directories"):
+        # VIEWS is Dict[str, List[str]]
+        # path_str_val is the directory for the api e.g. "/path/to/scopus"
+        # view is e.g. "abstracts"
+        if api in VIEWS: # Ensure api key exists in VIEWS
+            for view in VIEWS[api]:
+                view_path = Path(str(path_str_val), view) # Ensure path_str_val is treated as string
+                view_path.mkdir(parents=True, exist_ok=True)
 
 
-def get_config() -> Type[ConfigParser]:
+def get_config() -> ConfigParser: # Changed Type[ConfigParser] to ConfigParser
     """Function to get the config parser."""
-    if not CONFIG:
+    if CONFIG is None:
         raise FileNotFoundError(
             "No configuration file found."
             "Please initialize Pybliometrics with init().\n"
@@ -142,30 +164,39 @@ def get_config() -> Type[ConfigParser]:
     return CONFIG
 
 
-def get_insttokens() -> list[tuple[str, str]]:
+def get_insttokens() -> List[str]:
     """Function to get the InstToken and overwrite InstToken in config if needed."""
-    inst_tokens = []
+    global CONFIG # Ensure we are using the global CONFIG
+    inst_tokens_list: List[str] = []
     if CUSTOM_INSTTOKENS:
-        inst_tokens = CUSTOM_INSTTOKENS
-    elif not CUSTOM_KEYS:  # if custom keys are set, config inst tokens are not needed
+        inst_tokens_list = CUSTOM_INSTTOKENS
+    elif CONFIG is not None and not CUSTOM_KEYS:  # if custom keys are set, config inst tokens are not needed
         try:
             raw_token_text = CONFIG.get("Authentication", "InstToken")
-            inst_tokens = [k.strip() for k in raw_token_text.split(",")]
-        except NoOptionError:
-            inst_tokens = []
+            inst_tokens_list = [k.strip() for k in raw_token_text.split(",") if k.strip()]
+        except (NoOptionError, NoSectionError): # Added NoSectionError
+            inst_tokens_list = []
+    elif CONFIG is None:
+         raise FileNotFoundError(
+            "Configuration not initialized. Call init() first."
+        )
+    return inst_tokens_list
 
-    # key_token_pairs = list(zip(get_all_keys(), inst_tokens))
-    return inst_tokens
 
-
-def get_keys() -> list[str]:
+def get_keys() -> List[str]:
     """Function to get all the API keys and overwrite keys in config if needed."""
+    global CONFIG # Ensure we are using the global CONFIG
+    keys_list: List[str] = []
     if CUSTOM_KEYS:
-        keys = CUSTOM_KEYS
-    else:
+        keys_list = CUSTOM_KEYS
+    elif CONFIG is not None:
         try:
             raw_keys_text = CONFIG.get("Authentication", "APIKey")
-            keys = [k.strip() for k in raw_keys_text.split(",")]
-        except NoOptionError:
-            keys = []
-    return keys
+            keys_list = [k.strip() for k in raw_keys_text.split(",") if k.strip()]
+        except (NoOptionError, NoSectionError): # Added NoSectionError
+            keys_list = []
+    elif CONFIG is None:
+         raise FileNotFoundError(
+            "Configuration not initialized. Call init() first."
+        )
+    return keys_list

@@ -28,7 +28,7 @@ errors = {
 }
 
 
-def get_session() -> Type[Session]:
+def get_session() -> Session: # Changed Type[Session] to Session
     """Auxiliary function to create a session"""
     config = get_config()
 
