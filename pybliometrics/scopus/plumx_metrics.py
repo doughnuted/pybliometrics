@@ -1,3 +1,7 @@
+"""Retrieve PlumX metrics for a Scopus document."""
+
+from __future__ import annotations
+
 from collections import namedtuple
 from typing import Optional, Union
 
@@ -7,7 +11,7 @@ from pybliometrics.utils import check_parameter_value
 
 class PlumXMetrics(Retrieval):
     @property
-    def category_totals(self) -> Optional[list[namedtuple]]:
+    def category_totals(self) -> list[namedtuple] | None:
         """
         A list of namedtuples representing total metrics as categorized
         by PlumX Metrics in the form `(capture, citation, mention, socialMedia,
@@ -21,7 +25,7 @@ class PlumXMetrics(Retrieval):
         return _format_as_namedtuple_list(categories, "Category") or None
 
     @property
-    def capture(self) -> Optional[list[namedtuple]]:
+    def capture(self) -> list[namedtuple] | None:
         """
         A list of namedtuples representing metrics in the Captures category.
 
@@ -32,7 +36,7 @@ class PlumXMetrics(Retrieval):
         return _format_as_namedtuple_list(metrics) or None
 
     @property
-    def citation(self) -> Optional[list[namedtuple]]:
+    def citation(self) -> list[namedtuple] | None:
         """
         A list of namedtuples representing citation counts from
         different sources.
@@ -47,7 +51,7 @@ class PlumXMetrics(Retrieval):
         return _format_as_namedtuple_list(metrics) or None
 
     @property
-    def mention(self) -> Optional[list[namedtuple]]:
+    def mention(self) -> list[namedtuple] | None:
         """
         A list of namedtuples representing metrics in Mentions category.
 
@@ -58,7 +62,7 @@ class PlumXMetrics(Retrieval):
         return _format_as_namedtuple_list(metrics) or None
 
     @property
-    def social_media(self) -> Optional[list[namedtuple]]:
+    def social_media(self) -> list[namedtuple] | None:
         """
         A list of namedtuples representing social media metrics.
 
@@ -69,7 +73,7 @@ class PlumXMetrics(Retrieval):
         return _format_as_namedtuple_list(metrics) or None
 
     @property
-    def usage(self) -> Optional[list[namedtuple]]:
+    def usage(self) -> list[namedtuple] | None:
         """
         A list of namedtuples representing Usage category metrics.
 
@@ -83,7 +87,7 @@ class PlumXMetrics(Retrieval):
         self,
         identifier: str,
         id_type: str,
-        refresh: Union[bool, int] = False,
+        refresh: bool | int = False,
         **kwds: str,
     ) -> None:
         """

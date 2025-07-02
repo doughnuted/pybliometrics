@@ -1,3 +1,7 @@
+"""Search for authors on Scopus."""
+
+from __future__ import annotations
+
 from collections import namedtuple
 from typing import Optional, Union
 
@@ -13,7 +17,7 @@ from pybliometrics.utils import (
 
 class AuthorSearch(Search):
     @property
-    def authors(self) -> Optional[list[namedtuple]]:
+    def authors(self) -> list[namedtuple] | None:
         """
         A list of namedtuples storing author information,
         where each namedtuple corresponds to one author.
@@ -70,7 +74,7 @@ class AuthorSearch(Search):
     def __init__(
         self,
         query: str,
-        refresh: Union[bool, int] = False,
+        refresh: bool | int = False,
         verbose: bool = False,
         download: bool = True,
         integrity_fields: Union[list[str], tuple[str, ...]] = None,

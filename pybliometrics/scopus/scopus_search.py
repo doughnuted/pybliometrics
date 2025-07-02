@@ -1,3 +1,7 @@
+"""Search for documents on Scopus."""
+
+from __future__ import annotations
+
 from collections import namedtuple
 from typing import Optional, Union
 
@@ -17,7 +21,7 @@ from pybliometrics.utils import (
 
 class ScopusSearch(Search):
     @property
-    def results(self) -> Optional[list[namedtuple]]:
+    def results(self) -> list[namedtuple] | None:
         """
         A list of namedtuples in the form `(eid doi pii pubmed_id title
         subtype subtypeDescription creator afid affilname affiliation_city

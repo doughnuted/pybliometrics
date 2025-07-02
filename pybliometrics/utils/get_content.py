@@ -1,5 +1,3 @@
-from typing import Type
-
 from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.exceptions import JSONDecodeError
@@ -28,7 +26,7 @@ errors = {
 }
 
 
-def get_session() -> Session: # Changed Type[Session] to Session
+def get_session() -> Session:  # Changed Type[Session] to Session
     """Auxiliary function to create a session"""
     config = get_config()
 

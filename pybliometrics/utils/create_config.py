@@ -76,12 +76,12 @@ def create_config(
         insttoken_str = input(prompt_token)
 
     # Set keys and tokens in config
-    if keys_str: # Ensure keys_str is not None before setting
+    if keys_str:  # Ensure keys_str is not None before setting
         config.set("Authentication", "APIKey", keys_str)
     else:
         # Handle case where keys_str might still be None if not provided by user or params
         # Depending on requirements, could set a default, raise error, or leave empty
-        config.set("Authentication", "APIKey", "") # Example: set to empty string
+        config.set("Authentication", "APIKey", "")  # Example: set to empty string
 
     if insttoken_str:
         config.set("Authentication", "InstToken", insttoken_str)

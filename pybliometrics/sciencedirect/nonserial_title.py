@@ -1,5 +1,7 @@
 """Nonserial title class."""
 
+from __future__ import annotations
+
 from typing import Optional, Union
 
 from pybliometrics.superclasses import Retrieval
@@ -13,22 +15,22 @@ class NonserialTitle(Retrieval):
         return self._entry["prism:aggregationType"]
 
     @property
-    def authors(self) -> Optional[str]:
+    def authors(self) -> str | None:
         """The authors of the book."""
         return self._entry.get("authors")
 
     @property
-    def description(self) -> Optional[str]:
+    def description(self) -> str | None:
         """The description of the book."""
         return self._entry.get("description")
 
     @property
-    def edition(self) -> Optional[str]:
+    def edition(self) -> str | None:
         """The edition of the book."""
         return self._entry.get("prism:edition")
 
     @property
-    def editors(self) -> Optional[str]:
+    def editors(self) -> str | None:
         """The editors of the book."""
         return self._entry.get("editors")
 
@@ -77,9 +79,9 @@ class NonserialTitle(Retrieval):
 
     def __init__(
         self,
-        isbn: Union[int, str],
+        isbn: int | str,
         view: str = "STANDARD",
-        refresh: Union[bool, int] = False,
+        refresh: bool | int = False,
         **kwds: str,
     ) -> None:
         """

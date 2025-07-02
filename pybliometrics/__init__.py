@@ -1,3 +1,5 @@
+"""A Pythonic interface to Scopus and ScienceDirect."""
+
 from importlib.metadata import version
 
 __version__ = version("pybliometrics")

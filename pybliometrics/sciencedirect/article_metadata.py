@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-"""Module for retrieving article metadata from ScienceDirect."""
+"""Module for retrieving article metadata from ScienceDirect.
+
+This module provides the ArticleMetadata class to interact with the
+ScienceDirect Article Metadata API.
+"""
 from collections import namedtuple
 
 from pybliometrics.superclasses import Search

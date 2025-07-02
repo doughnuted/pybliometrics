@@ -1,3 +1,7 @@
+"""Provides the ScienceDirectSearch class for searching articles on ScienceDirect."""
+
+from __future__ import annotations
+
 from collections import namedtuple
 from typing import Optional, Union
 
@@ -15,7 +19,7 @@ from pybliometrics.utils import (
 
 class ScienceDirectSearch(Search):
     @property
-    def results(self) -> Optional[list[namedtuple]]:
+    def results(self) -> list[namedtuple] | None:
         """
         A list of namedtuples in the form `(authors first_author doi title link
         load_date openaccess_status pii coverDate endingPage publicationName
@@ -87,11 +91,11 @@ class ScienceDirectSearch(Search):
     def __init__(
         self,
         query: str,
-        refresh: Union[bool, int] = False,
-        view: Optional[str] = None,
+        refresh: bool | int = False,
+        view: str | None = None,
         verbose: bool = False,
         download: bool = True,
-        integrity_fields: Optional[Union[list[str], tuple[str, ...]]] = None,
+        integrity_fields: list[str] | tuple[str, ...] | None = None,
         integrity_action: str = "raise",
         subscriber: bool = True,
         **kwds: str,
@@ -169,7 +173,7 @@ class ScienceDirectSearch(Search):
         """Print a summary string."""
         return make_search_summary(self, "document", self.get_dois())
 
-    def get_dois(self):
+    def get_dois(self) -> list[str | None]:
         """DOIs of retrieved documents."""
         return [
             d.get("prism:doi") or d.get("dc:identifier")[4:]

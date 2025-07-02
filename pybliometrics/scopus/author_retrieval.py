@@ -1,3 +1,7 @@
+"""Retrieve author-level metadata from Scopus."""
+
+from __future__ import annotations
+
 from collections import namedtuple
 from json import loads
 from typing import Optional, Union
@@ -24,7 +28,7 @@ from .scopus_search import ScopusSearch
 
 class AuthorRetrieval(Retrieval):
     @property
-    def affiliation_current(self) -> Optional[list[namedtuple]]:
+    def affiliation_current(self) -> list[namedtuple] | None:
         """
         A list of namedtuples representing the authors's current
         affiliation(s), in the form `(id parent type relationship afdispname
@@ -43,7 +47,7 @@ class AuthorRetrieval(Retrieval):
         return parse_affiliation(affs or {}, self._view)
 
     @property
-    def affiliation_history(self) -> Optional[list[namedtuple]]:
+    def affiliation_history(self) -> list[namedtuple] | None:
         """
         A list of namedtuples representing the authors's historical
         affiliation(s), in the form `(id parent type relationship afdispname
@@ -60,7 +64,7 @@ class AuthorRetrieval(Retrieval):
         return parse_affiliation(affs or {}, self._view)
 
     @property
-    def alias(self) -> Optional[list[str]]:
+    def alias(self) -> list[str] | None:
         """
         List of possible new Scopus Author Profile IDs in case the profile
         has been merged.
@@ -82,7 +86,7 @@ class AuthorRetrieval(Retrieval):
         )
 
     @property
-    def classificationgroup(self) -> Optional[list[tuple[int, int]]]:
+    def classificationgroup(self) -> list[tuple[int, int]] | None:
         """List with tuples with form`(subject group ID, number of documents)`."""
         path = ["classificationgroup", "classifications", "classification"]
         out = [
@@ -92,17 +96,17 @@ class AuthorRetrieval(Retrieval):
         return out or None
 
     @property
-    def coauthor_count(self) -> Optional[int]:
+    def coauthor_count(self) -> int | None:
         """Total number of coauthors."""
         return make_int_if_possible(chained_get(self._json, ["coauthor-count"]))
 
     @property
-    def coauthor_link(self) -> Optional[str]:
+    def coauthor_link(self) -> str | None:
         """URL to Scopus API search page for coauthors."""
         return get_link(self._json, 3)
 
     @property
-    def date_created(self) -> Optional[tuple[int, int, int]]:
+    def date_created(self) -> tuple[int, int, int] | None:
         """Date the Scopus record was created."""
         try:
             return parse_date_created(self._profile)
@@ -117,7 +121,7 @@ class AuthorRetrieval(Retrieval):
         )
 
     @property
-    def document_entitlement_status(self) -> Optional[str]:
+    def document_entitlement_status(self) -> str | None:
         """
         Returns the document entitlement status, i.e. tells if the requestor
         is entitled to the requested resource.
@@ -126,7 +130,7 @@ class AuthorRetrieval(Retrieval):
         return chained_get(self._json, ["document-entitlement", "status"])
 
     @property
-    def eid(self) -> Optional[str]:
+    def eid(self) -> str | None:
         """
         The EID of the author.  If it differs from the one provided,
         pybliometrics will throw a warning informing the user about
@@ -135,19 +139,19 @@ class AuthorRetrieval(Retrieval):
         return chained_get(self._json, ["coredata", "eid"])
 
     @property
-    def given_name(self) -> Optional[str]:
+    def given_name(self) -> str | None:
         """Author's preferred given name."""
         return html_unescape(
             chained_get(self._profile, ["preferred-name", "given-name"])
         )
 
     @property
-    def h_index(self) -> Optional[str]:
+    def h_index(self) -> str | None:
         """The author's h-index."""
         return make_int_if_possible(chained_get(self._json, ["h-index"]))
 
     @property
-    def historical_identifier(self) -> Optional[list[int]]:
+    def historical_identifier(self) -> list[int] | None:
         """Scopus IDs of previous profiles now compromising this profile."""
         hist = chained_get(self._json, ["coredata", "historical-identifier"], [])
         return [int(d["$"].split(":")[-1]) for d in hist] or None
@@ -169,7 +173,7 @@ class AuthorRetrieval(Retrieval):
         return int(ident)
 
     @property
-    def indexed_name(self) -> Optional[str]:
+    def indexed_name(self) -> str | None:
         """Author's name as indexed by Scopus."""
         if self._view in ("STANDARD", "ENHANCED"):
             indexed_name = html_unescape(
@@ -197,12 +201,12 @@ class AuthorRetrieval(Retrieval):
         return indexed_name
 
     @property
-    def initials(self) -> Optional[str]:
+    def initials(self) -> str | None:
         """Author's preferred initials."""
         return html_unescape(chained_get(self._profile, ["preferred-name", "initials"]))
 
     @property
-    def name_variants(self) -> Optional[list[namedtuple]]:
+    def name_variants(self) -> list[namedtuple] | None:
         """
         List of named tuples containing variants of the author name with
         number of documents published with that variant.
@@ -222,12 +226,12 @@ class AuthorRetrieval(Retrieval):
         return out or None
 
     @property
-    def orcid(self) -> Optional[str]:
+    def orcid(self) -> str | None:
         """The author's ORCID."""
         return chained_get(self._json, ["coredata", "orcid"])
 
     @property
-    def publication_range(self) -> Optional[tuple[int, int]]:
+    def publication_range(self) -> tuple[int, int] | None:
         """Tuple containing years of first and last publication."""
         if self._view in ("STANDARD", "ENHANCED", "LIGHT"):
             if self._view in ("STANDARD", "ENHANCED"):
@@ -247,27 +251,27 @@ class AuthorRetrieval(Retrieval):
         return None
 
     @property
-    def scopus_author_link(self) -> Optional[str]:
+    def scopus_author_link(self) -> str | None:
         """Link to the Scopus web view of the author."""
         return get_link(self._json, 1)
 
     @property
-    def search_link(self) -> Optional[str]:
+    def search_link(self) -> str | None:
         """URL to the API page listing documents of the author."""
         return get_link(self._json, 2)
 
     @property
-    def self_link(self) -> Optional[str]:
+    def self_link(self) -> str | None:
         """Link to the author's API page."""
         return get_link(self._json, 0)
 
     @property
-    def status(self) -> Optional[str]:
+    def status(self) -> str | None:
         """The status of the author profile."""
         return self._profile.get("status")
 
     @property
-    def subject_areas(self) -> Optional[list[namedtuple]]:
+    def subject_areas(self) -> list[namedtuple] | None:
         """
         List of named tuples of subject areas in the form
         `(area, abbreviation, code)` of author's publication.
@@ -281,19 +285,19 @@ class AuthorRetrieval(Retrieval):
         return areas or None
 
     @property
-    def surname(self) -> Optional[str]:
+    def surname(self) -> str | None:
         """Author's preferred surname."""
         return html_unescape(chained_get(self._profile, ["preferred-name", "surname"]))
 
     @property
-    def url(self) -> Optional[str]:
+    def url(self) -> str | None:
         """URL to the author's API page."""
         return chained_get(self._json, ["coredata", "prism:url"])
 
     def __init__(
         self,
-        author_id: Union[int, str],
-        refresh: Union[bool, int] = False,
+        author_id: int | str,
+        refresh: bool | int = False,
         view: str = "ENHANCED",
         **kwds: str,
     ) -> None:
@@ -380,7 +384,7 @@ class AuthorRetrieval(Retrieval):
             )
         return s
 
-    def get_coauthors(self) -> Optional[list[namedtuple]]:
+    def get_coauthors(self) -> list[namedtuple] | None:
         """
         Retrieves basic information about co-authors as a list of
         namedtuples in the form
@@ -430,8 +434,8 @@ class AuthorRetrieval(Retrieval):
         return coauthors or None
 
     def get_documents(
-        self, subtypes: list[str] = None, *args: str, **kwds: str
-    ) -> Optional[list[namedtuple]]:
+        self, subtypes: list[str] | None = None, *args: str, **kwds: str
+    ) -> list[namedtuple] | None:
         """
         Return list of the author's publications using a `ScopusSearch()`
         query, where publications may fit a specified set of document subtypes.
@@ -448,7 +452,7 @@ class AuthorRetrieval(Retrieval):
             return [p for p in s.results if p.subtype in subtypes]
         return s.results
 
-    def get_document_eids(self, *args: str, **kwds: str) -> Optional[list[str]]:
+    def get_document_eids(self, *args: str, **kwds: str) -> list[str] | None:
         """
         Return list of EIDs of the author's publications using
         a ScopusSearch() query.
@@ -462,7 +466,9 @@ class AuthorRetrieval(Retrieval):
         s = ScopusSearch(f"AU-ID({self.identifier})", *args, **kwds)
         return s.get_eids()
 
-    def estimate_uniqueness(self, query: str = None, *args: str, **kwds: str) -> int:
+    def estimate_uniqueness(
+        self, query: str | None = None, *args: str, **kwds: str
+    ) -> int:
         """
         Return the number of Scopus author profiles similar to this profile
         via calls with `AuthorSearch()`.

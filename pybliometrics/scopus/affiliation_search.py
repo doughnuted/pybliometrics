@@ -1,3 +1,7 @@
+"""Search for affiliations on Scopus."""
+
+from __future__ import annotations
+
 from collections import namedtuple
 from typing import Optional, Union
 
@@ -13,7 +17,7 @@ from pybliometrics.utils import (
 
 class AffiliationSearch(Search):
     @property
-    def affiliations(self) -> Optional[list[namedtuple]]:
+    def affiliations(self) -> list[namedtuple] | None:
         """
         A list of namedtuples storing affiliation information,
         where each namedtuple corresponds to one affiliation.
@@ -59,10 +63,10 @@ class AffiliationSearch(Search):
     def __init__(
         self,
         query: str,
-        refresh: Union[bool, int] = False,
+        refresh: bool | int = False,
         verbose: bool = False,
         download: bool = True,
-        integrity_fields: Union[list[str], tuple[str, ...]] = None,
+        integrity_fields: list[str] | tuple[str, ...] | None = None,
         integrity_action: str = "raise",
         **kwds: str,
     ) -> None:

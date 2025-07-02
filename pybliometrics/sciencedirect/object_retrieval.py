@@ -1,5 +1,7 @@
 """Module to retrieve a specific object of a document."""
 
+from __future__ import annotations
+
 from io import BytesIO
 from typing import Optional, Union
 
@@ -16,12 +18,12 @@ class ObjectRetrieval(Retrieval):
 
     def __init__(
         self,
-        identifier: Union[int, str],
+        identifier: int | str,
         filename: str,
-        id_type: Optional[str] = None,
-        refresh: Union[bool, int] = False,
+        id_type: str | None = None,
+        refresh: bool | int = False,
         **kwds: str,
-    ):
+    ) -> None:
         """
         Class to retrieve a specific object of a document by its filename.
 

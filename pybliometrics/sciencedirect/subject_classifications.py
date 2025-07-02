@@ -1,5 +1,7 @@
 """Module with the class SubjectClassifications."""
 
+from __future__ import annotations
+
 from typing import Optional, Union
 
 from pybliometrics import scopus
@@ -10,8 +12,8 @@ class SubjectClassifications(scopus.SubjectClassifications):
         self,
         query: dict,
         *,
-        refresh: Union[bool, int] = False,
-        fields: Optional[Union[list[str], tuple[str, ...]]] = None,
+        refresh: bool | int = False,
+        fields: list[str] | tuple[str, ...] | None = None,
         **kwds: str,
     ) -> None:
         """

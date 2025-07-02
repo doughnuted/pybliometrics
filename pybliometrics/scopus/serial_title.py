@@ -1,3 +1,5 @@
+"""Retrieve serial (journal, book series) metadata from Scopus."""
+
 from collections import namedtuple
 from typing import Optional, Union
 

@@ -173,7 +173,9 @@ def test_openaccessUserLicense():
 
 def test_originalText():
     # Using a placeholder string to avoid issues with the original long string
-    ar_full_test_originalText = "This is a test string for the originalText functionality."
+    ar_full_test_originalText = (
+        "This is a test string for the originalText functionality."
+    )
     # The actual content of ar_full.originalText is not being validated here,
     # only that slicing a large text (if it were present) doesn't break.
     # For the purpose of this mypy check, we assume ar_full.originalText could be very long.
@@ -182,7 +184,7 @@ def test_originalText():
     # This test might need adjustment if the goal is to validate the exact content
     # of a very long string. For now, we ensure mypy passes.
     if ar_full.originalText and len(ar_full.originalText) > 80000:
-        assert len(ar_full.originalText[-80000:-78000]) > 0 # Basic check
+        assert len(ar_full.originalText[-80000:-78000]) > 0  # Basic check
     else:
         # If the text isn't that long, or is None, this part of the test might not be relevant
         # or might need a different approach. For mypy, this structure is fine.
@@ -342,7 +344,7 @@ def test_volume():
 def test_str_magic() -> None:
     expected = (
         "Mohsen Soori, Behrooz Arezoo and Roza Dastres: "
-        "\"Artificial neural networks in supply chain management, a review\", "
+        '"Artificial neural networks in supply chain management, a review", '
         "Journal of Economy and Technology, 1, pp. 179-196(2023). "
         "https://doi.org/10.1016/j.ject.2023.11.002."
     )

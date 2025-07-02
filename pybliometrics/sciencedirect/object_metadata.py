@@ -1,6 +1,8 @@
 """Module with the ObjectMetadata class."""
 
 from collections import namedtuple
+from __future__ import annotations
+
 from typing import Optional, Union
 
 from pybliometrics.superclasses import Retrieval
@@ -47,12 +49,12 @@ class ObjectMetadata(Retrieval):
 
     def __init__(
         self,
-        identifier: Union[int, str],
+        identifier: int | str,
         view: str = "META",
-        id_type: Optional[str] = None,
-        refresh: Union[bool, int] = False,
+        id_type: str | None = None,
+        refresh: bool | int = False,
         **kwds: str,
-    ):
+    ) -> None:
         """
         Class to retrieve the metadata of all objects of a document.
 

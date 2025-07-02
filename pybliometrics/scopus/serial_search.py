@@ -1,3 +1,5 @@
+"""Search for serials (journals, book series) on Scopus."""
+
 from collections import OrderedDict
 from typing import Optional, Union
 

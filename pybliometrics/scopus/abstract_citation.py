@@ -16,8 +16,9 @@ class CitationOverview(Retrieval):
     """
     Class to retrieve citation overview data from Scopus.
     """
+
     @property
-    def authors(self) -> Optional[list[Optional[namedtuple]]]:
+    def authors(self) -> list[namedtuple | None] | None:
         """
         A list of lists of namedtuples storing author information,
         where each namedtuple corresponds to one author and each sub-list to
@@ -65,14 +66,14 @@ class CitationOverview(Retrieval):
         return _maybe_return_list(outer)
 
     @property
-    def citation_type_long(self) -> Optional[list[str]]:
+    def citation_type_long(self) -> list[str] | None:
         """Type (long version) of the documents (e.g. article, review)."""
         path = ["citationType", "$"]
         out = [chained_get(e, path) for e in self._citeInfoMatrix]
         return _maybe_return_list(out)
 
     @property
-    def citation_type_short(self) -> Optional[list[str]]:
+    def citation_type_short(self) -> list[str] | None:
         """Type (short version) of the documents (e.g. ar, re)."""
         path = ["citationType", "@code"]
         out = [chained_get(e, path) for e in self._citeInfoMatrix]
@@ -84,13 +85,13 @@ class CitationOverview(Retrieval):
         return [int(d["$"]) for d in self._citeCountHeader["columnTotal"]]
 
     @property
-    def doi(self) -> Optional[list[str]]:
+    def doi(self) -> list[str] | None:
         """Document Object Identifier (DOI) of the documents."""
         out = [e.get("doi") for e in self._identifierlegend]
         return _maybe_return_list(out)
 
     @property
-    def ending_page(self) -> Optional[list[str]]:
+    def ending_page(self) -> list[str] | None:
         """Ending pages of the documents."""
         out = [e.get("endingPage") for e in self._citeInfoMatrix]
         return _maybe_return_list(out)
@@ -106,8 +107,9 @@ class CitationOverview(Retrieval):
         return int(self._data["h-index"])
 
     @property
-    def issn(self) -> Optional[list[Optional[Union[str, tuple[str, str]]]]]:
-        """ISSN of the publishers of the documents.
+    def issn(self) -> list[str | tuple[str, str] | None] | None:
+        """
+        ISSN of the publishers of the documents.
         Note: If E-ISSN is known to Scopus, this returns both
         ISSN and E-ISSN in random order separated by blank space.
         """
@@ -115,7 +117,7 @@ class CitationOverview(Retrieval):
         return _maybe_return_list(out)
 
     @property
-    def issue_identifier(self) -> Optional[list[Optional[str]]]:
+    def issue_identifier(self) -> list[str | None] | None:
         """Issue numbers of the documents."""
         out = [e.get("issueIdentifier") for e in self._citeInfoMatrix]
         return _maybe_return_list(out)
@@ -139,7 +141,7 @@ class CitationOverview(Retrieval):
         return [int(m["pcc"]) for m in self._citeInfoMatrix]
 
     @property
-    def pii(self) -> Optional[list[Optional[str]]]:
+    def pii(self) -> list[str | None] | None:
         """The Publication Item Identifier (PII) of the documents."""
         out = [e.get("pii") for e in self._identifierlegend]
         return _maybe_return_list(out)
@@ -178,19 +180,20 @@ class CitationOverview(Retrieval):
 
     @property
     def scopus_id(self) -> list[int]:
-        """The Scopus ID(s) of the documents.  Might differ from the
+        """
+        The Scopus ID(s) of the documents.  Might differ from the
         ones provided.
         """
         return [int(e["scopus_id"]) for e in self._identifierlegend]
 
     @property
-    def sort_title(self) -> Optional[list[Optional[str]]]:
+    def sort_title(self) -> list[str | None] | None:
         """Name of source the documents are published in (e.g. the Journal)."""
         out = [e.get("sortTitle") for e in self._citeInfoMatrix]
         return _maybe_return_list(out)
 
     @property
-    def starting_page(self) -> Optional[list[Optional[str]]]:
+    def starting_page(self) -> list[str | None] | None:
         """Starting page."""
         out = [e.get("startingPage") for e in self._citeInfoMatrix]
         return _maybe_return_list(out)
@@ -206,20 +209,20 @@ class CitationOverview(Retrieval):
         return [e["url"] for e in self._citeInfoMatrix]
 
     @property
-    def volume(self) -> Optional[str]:
+    def volume(self) -> str | None:
         """Volume for the abstract."""
         out = [e.get("volume") for e in self._citeInfoMatrix]
         return _maybe_return_list(out)
 
     def __init__(
         self,
-        identifier: list[Union[int, str]],
-        date: Optional[str] = None,
-        start: Optional[Union[int, str]] = None,
-        end: Optional[Union[int, str]] = None,
+        identifier: list[int | str],
+        date: str | None = None,
+        start: int | str | None = None,
+        end: int | str | None = None,
         id_type: str = "scopus_id",
-        refresh: Union[bool, int] = False,
-        citation: Optional[str] = None,
+        refresh: bool | int = False,
+        citation: str | None = None,
         **kwds: str,
     ) -> None:
         """
