@@ -1,9 +1,15 @@
 """Tests for sciencedirect.ArticleMetadata."""
 
+import os
 from collections import namedtuple
+
+import pytest
 
 from pybliometrics.exception import Scopus400Error
 from pybliometrics.sciencedirect import ArticleMetadata, init
+
+if not os.environ.get("PYBLIOMETRICS_API_KEY"):
+    pytest.skip("PYBLIOMETRICS_API_KEY not set", allow_module_level=True)
 
 init()
 
@@ -122,7 +128,7 @@ def test_length():
 
 
 def test_string():
-    part_of_str = ('Search \'AFFIL("MIT") AND YEAR("2023") AND '                   'DOI(10.1016/B978-0-32-399851-2.00030-2)\' yielded 1 document as of')
+    part_of_str = 'Search \'AFFIL("MIT") AND YEAR("2023") AND DOI(10.1016/B978-0-32-399851-2.00030-2)\' yielded 1 document as of'
     assert part_of_str in am_complete.__str__()
 
 

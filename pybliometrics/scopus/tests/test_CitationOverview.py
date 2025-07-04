@@ -1,8 +1,14 @@
 """Tests for `scopus.CitationOverview` module."""
 
+import os
 from collections import namedtuple
 
+import pytest
+
 from pybliometrics.scopus import CitationOverview, init
+
+if not os.environ.get("PYBLIOMETRICS_API_KEY"):
+    pytest.skip("PYBLIOMETRICS_API_KEY not set", allow_module_level=True)
 
 init()
 
