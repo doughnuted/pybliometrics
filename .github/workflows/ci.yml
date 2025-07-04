@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+      - name: Initialize pybliometrics
+        run: |
+          python - <<'EOF'
+          import os
+          from pybliometrics.utils.startup import init
+
+          key = os.getenv("PYBLIOMETRICS_API_KEY")
+          if key:
+              init(keys=[key])
+          else:
+              init(keys=["dummy"])
+          EOF
+        env:
+          PYBLIOMETRICS_API_KEY: ${{ secrets.PYBLIOMETRICS_API_KEY }}
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure --color=always
+      - name: Run pytest
+        env:
+          PYBLIOMETRICS_API_KEY: ${{ secrets.PYBLIOMETRICS_API_KEY }}
+        run: pytest -q
