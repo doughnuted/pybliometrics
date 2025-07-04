@@ -122,7 +122,10 @@ def test_length():
 
 
 def test_string():
-    part_of_str = ('Search \'AFFIL("MIT") AND YEAR("2023") AND '                   'DOI(10.1016/B978-0-32-399851-2.00030-2)\' yielded 1 document as of')
+    part_of_str = (
+        'Search \'AFFIL("MIT") AND YEAR("2023") AND '
+        "DOI(10.1016/B978-0-32-399851-2.00030-2)' yielded 1 document as of"
+    )
     assert part_of_str in am_complete.__str__()
 
 
