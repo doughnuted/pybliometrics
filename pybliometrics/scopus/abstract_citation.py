@@ -16,6 +16,7 @@ class CitationOverview(Retrieval):
     """
     Class to retrieve citation overview data from Scopus.
     """
+
     @property
     def authors(self) -> Optional[list[Optional[namedtuple]]]:
         """
