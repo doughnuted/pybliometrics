@@ -1,6 +1,11 @@
-from importlib.metadata import version
+"""Top-level package for pybliometrics."""
 
-__version__ = version("pybliometrics")
+from importlib.metadata import PackageNotFoundError, version
+
+try:  # pragma: no cover - fallback when package isn't installed
+    __version__ = version("pybliometrics")
+except PackageNotFoundError:  # pragma: no cover - only during tests
+    __version__ = "0+unknown"
 
 __citation__ = (
     'Rose, Michael E. and John R. Kitchin: "pybliometrics: '

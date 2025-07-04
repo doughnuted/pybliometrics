@@ -32,6 +32,9 @@ Example (for Scopus)
 
     >>> import pybliometrics
     >>> pybliometrics.init()  # read API keys
+    >>> # alternatively, initialize subpackages directly
+    >>> pybliometrics.scopus.init()
+    >>> pybliometrics.sciencedirect.init()
     >>> # Document-specific information
     >>> from pybliometrics.scopus import AbstractRetrieval
     >>> ab = AbstractRetrieval("10.1016/j.softx.2019.100263")
