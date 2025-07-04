@@ -1,3 +1,5 @@
+"""Utility helpers for pybliometrics."""
+
 from pybliometrics.utils.checks import check_parameter_value
 from pybliometrics.utils.constants import (
     APIS_WITH_ID_TYPE,

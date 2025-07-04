@@ -1,15 +1,21 @@
 """Superclass to access all Scopus retrieval APIs and dump the results."""
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Union
 
 from pybliometrics.superclasses import Base
 from pybliometrics.utils import APIS_WITH_ID_TYPE, URLS, get_config
 
 
 class Retrieval(Base):
+    """Superclass for retrieval-style API endpoints."""
+
     def __init__(
-        self, identifier: Union[int, str], id_type: str = None, **kwds: str
+        self,
+        identifier: int | str,
+        id_type: str | None = None,
+        **kwds: str,
     ) -> None:
         """
         Class intended as superclass to perform retrievals.

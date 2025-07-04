@@ -16,9 +16,9 @@ The work is broken down into independent, parallelizable tasks based on director
 - [ ] **Parallel Fixes:** Address all remaining `ruff` issues by completing the following independent tasks.
     - [x] **Task 1:** Fix `pybliometrics/sciencedirect/`
     - [x] **Task 2:** Fix `pybliometrics/scopus/` (partially completed: `abstract_citation.py` partially addressed)
-    - [ ] **Task 3:** Fix `pybliometrics/superclasses/`
+    - [x] **Task 3:** Fix `pybliometrics/superclasses/`
     - [ ] **Task 4:** Fix `pybliometrics/utils/`
-    - [ ] **Task 5:** Fix `docs/`
+    - [x] **Task 5:** Fix `docs/`
     - [ ] **Task 6:** Fix root-level files
 - [ ] **Final Review:** Run `ruff check .` one last time to ensure no issues remain after all parallel tasks are merged.
 - [ ] **Pre-commit Hooks:** Install and run pre-commit hooks to maintain standards moving forward.

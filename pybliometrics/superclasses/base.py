@@ -1,9 +1,10 @@
 """Base class object for superclasses."""
 
+from __future__ import annotations
+
 from json import dumps, loads
 from math import ceil
 from time import localtime, strftime, time
-from typing import Optional
 
 from tqdm import tqdm
 
@@ -12,10 +13,13 @@ from pybliometrics.utils import SEARCH_MAX_ENTRIES, get_content, listify, parse_
 
 
 class Base:
-    def __init__(
+    """Common functionality for all pybliometrics superclasses."""
+
+    def __init__(  # noqa: PLR0912,PLR0915
         self,
         params: dict,
         url: str,
+        *,
         download: bool = True,
         verbose: bool = False,
         **kwds: str,
@@ -42,7 +46,7 @@ class Base:
             _ = int(self._refresh)
         except ValueError:
             msg = "Parameter refresh needs to be numeric or boolean."
-            raise ValueError(msg)
+            raise ValueError(msg) from None
 
         # Compare age of file to test whether we refresh
         self._refresh, mod_ts = _check_file_age(self)
@@ -74,7 +78,13 @@ class Base:
 
             if ab_ref_retrieval:
                 kwds["startref"] = "1"
-                data = _get_all_refs(url, params, verbose, resp, **kwds)
+                data = _get_all_refs(
+                    url,
+                    params,
+                    verbose=verbose,
+                    resp=resp,
+                    **kwds,
+                )
                 self._json = data
                 data = [data]
             elif search_request:
@@ -104,7 +114,7 @@ class Base:
                     if verbose:
                         print(f'Downloading results for query "{params["query"]}":')
                     n_chunks = ceil(n / params["count"])
-                    for i in tqdm(
+                    for _ in tqdm(
                         range(1, n_chunks),
                         disable=not verbose,
                         initial=1,
@@ -150,21 +160,15 @@ class Base:
         """Return the modification date of the cached file."""
         return strftime("%Y-%m-%d %H:%M:%S", localtime(self._mdate))
 
-    def get_key_remaining_quota(self) -> Optional[str]:
-        """
-        Return number of remaining requests for the current key and the
-        current API (relative on last actual request).
-        """
+    def get_key_remaining_quota(self) -> str | None:
+        """Return number of remaining requests for the current key."""
         try:
             return self._header["X-RateLimit-Remaining"]
         except AttributeError:
             return None
 
-    def get_key_reset_time(self) -> Optional[str]:
-        """
-        Return time when current key is reset (relative on last
-        actual request).
-        """
+    def get_key_reset_time(self) -> str | None:
+        """Return time when current key is reset."""
         try:
             date = int(self._header["X-RateLimit-Reset"])
             return strftime("%Y-%m-%d %H:%M:%S", localtime(date))
@@ -172,8 +176,8 @@ class Base:
             return None
 
 
-def _check_file_age(self):
-    """Whether a file needs to be refreshed based on its age."""
+def _check_file_age(self: Base) -> tuple[bool, float | None]:
+    """Return whether a file needs refreshing and its modification time."""
     refresh = self._refresh
     try:
         mod_ts = self._cache_file_path.stat().st_mtime
@@ -188,7 +192,14 @@ def _check_file_age(self):
     return refresh, mod_ts
 
 
-def _get_all_refs(url: str, params: dict, verbose: bool, resp: dict, **kwds) -> dict:
+def _get_all_refs(
+    url: str,
+    params: dict,
+    *,
+    verbose: bool,
+    resp: dict,
+    **kwds: str,
+) -> dict:
     """Get all references for `AbstractRetrieval` with view `REF`."""
     # startref starts at 1 (0 does not work)
     # Max refs per query are 40
@@ -209,7 +220,7 @@ def _get_all_refs(url: str, params: dict, verbose: bool, resp: dict, **kwds) -> 
     ref_len = len(parse_content.chained_get(data, path_reference))
     n_chunks = ceil(n / ref_len)
 
-    for i in tqdm(range(1, n_chunks), disable=not verbose, initial=1, total=n_chunks):
+    for _ in tqdm(range(1, n_chunks), disable=not verbose, initial=1, total=n_chunks):
         # Increment startref
         kwds["startref"] = str(int(kwds["startref"]) + ref_len)
         # Get
@@ -221,13 +232,24 @@ def _get_all_refs(url: str, params: dict, verbose: bool, resp: dict, **kwds) -> 
             listify(res)
         )
         if verbose:
+            total_refs = len(
+                parse_content.chained_get(
+                    data,
+                    ["abstracts-retrieval-response", "references", "reference"],
+                )
+            )
             print(
-                f"Extracted:\n\tFrom: {kwds['startref']}\n\tTo:{len(parse_content.chained_get(data, ['abstracts-retrieval-response', 'references', 'reference']))}"
+                "Extracted:\n\tFrom: "
+                f"{kwds['startref']}\n\tTo:{total_refs}"
             )
 
     if verbose:
-        print(
-            f"Total data: {len(parse_content.chained_get(data, ['abstracts-retrieval-response', 'references', 'reference']))}"
+        total_refs = len(
+            parse_content.chained_get(
+                data,
+                ["abstracts-retrieval-response", "references", "reference"],
+            )
         )
+        print(f"Total data: {total_refs}")
 
     return data

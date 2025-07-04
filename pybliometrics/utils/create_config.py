@@ -1,24 +1,32 @@
+"""Configuration helper for generating a default config file."""
+
+from __future__ import annotations
+
 import configparser
 from pathlib import Path
-from typing import Optional, Union
 
 from pybliometrics.utils.constants import CONFIG_FILE
 
 
 def create_config(
-    config_dir: Optional[Union[str, Path]] = None,
-    keys: Optional[list[str]] = None,
-    insttoken: Optional[list[str]] = None,
-):
-    """
-    Initiates process to generate configuration file.
+    config_dir: str | Path | None = None,
+    keys: list[str] | None = None,
+    insttoken: list[str] | None = None,
 
-    :param config_dir: The location of the configuration file.
-    :param keys: If you provide a list of keys, pybliometrics will skip the
-                 prompt.  It will also not ask for InstToken.  This is
-                 intended for workflows using CI, not for general use.
-    :param insttoken: An InstToken to be used alongside the key(s). Will only
-                      be used if `keys` is not empty.
+) -> configparser.ConfigParser:
+    """
+    Generate a default configuration file.
+
+    Parameters
+    ----------
+    config_dir
+        The location of the configuration file.
+    keys
+        If provided, skip the interactive prompt. This is intended for
+        CI workflows.
+    insttoken
+        Token used alongside the key(s). Only used if `keys` is provided.
+
     """
     from pybliometrics.utils.constants import DEFAULT_PATHS
 
@@ -40,11 +48,13 @@ def create_config(
     # Get keys and tokens
     if keys:
         if not isinstance(keys, list):
-            raise ValueError("Parameter `keys` must be a list.")
+            message = "Parameter `keys` must be a list."
+            raise ValueError(message)
         keys = ", ".join(keys)
     if insttoken:
         if not isinstance(insttoken, list):
-            raise ValueError("Parameter `inst_tokens` must be a list. ")
+            message = "Parameter `inst_tokens` must be a list. "
+            raise ValueError(message)
         insttoken = ", ".join(insttoken)
 
     # If no keys or tokens are provided, ask for them
@@ -76,7 +86,7 @@ def create_config(
 
     # Write out
     config_dir.parent.mkdir(parents=True, exist_ok=True)
-    with open(config_dir, "w") as ouf:
+    with Path(config_dir).open("w") as ouf:
         config.write(ouf)
     print(
         f"Configuration file successfully created at {config_dir}\n"

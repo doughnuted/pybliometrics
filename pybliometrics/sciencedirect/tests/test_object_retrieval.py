@@ -1,5 +1,15 @@
 """Tests for ObjectRetrieval() class."""
 
+import os
+
+import pytest
+
+if not os.environ.get("PYBLIOMETRICS_API_KEY"):
+    pytest.skip(
+        "Skipping network tests: API key not set",
+        allow_module_level=True,
+    )
+
 import xml.etree.ElementTree as ET
 from io import BytesIO
 
