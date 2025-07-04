@@ -28,6 +28,13 @@ Development: https://github.com/pybliometrics-dev/pybliometrics
 Example (for Scopus)
 ====================
 .. example-begin
+First set the environment variable containing your API key so that
+``pybliometrics`` can initialize without a prompt:
+
+.. code-block:: bash
+
+   export PYBLIOMETRICS_API_KEY="YOUR_KEY"
+
 .. code:: python
 
     >>> import pybliometrics

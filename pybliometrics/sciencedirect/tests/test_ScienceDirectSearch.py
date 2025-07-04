@@ -1,9 +1,15 @@
 """Tests for sciencedirect.ScienceDirectSearch"""
 
+import os
 from collections import namedtuple
+
+import pytest
 
 from pybliometrics.exception import Scopus400Error
 from pybliometrics.sciencedirect import ScienceDirectSearch, init
+
+if not os.environ.get("PYBLIOMETRICS_API_KEY"):
+    pytest.skip("PYBLIOMETRICS_API_KEY not set", allow_module_level=True)
 
 init()
 

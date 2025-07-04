@@ -1,6 +1,13 @@
 """Tests for `scopus.PlumXMetrics` module."""
 
+import os
+
+import pytest
+
 from pybliometrics.scopus import PlumXMetrics, init
+
+if not os.environ.get("PYBLIOMETRICS_API_KEY"):
+    pytest.skip("PYBLIOMETRICS_API_KEY not set", allow_module_level=True)
 
 init()
 

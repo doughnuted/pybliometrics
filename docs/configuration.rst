@@ -89,3 +89,19 @@ To see the location of the configuration file your current `pybliometrics` insta
     >>> print(pybliometrics.utils.constants.CONFIG_FILE)
 
 If you started with versions older than 3.5, the file was called `config.ini` and located either in `~/.pybliometrics/` or (for very old installations) in `~/.scopus/`. You can safely move and rename the file.  Those locations always take precedence.
+
+Environment variable
+--------------------
+For temporary setups or automated tests you can provide a key via the
+``PYBLIOMETRICS_API_KEY`` environment variable instead of editing the
+configuration file.  When this variable is set, :func:`pybliometrics.init`
+will use the key without prompting.
+
+Testing
+-------
+The repository contains integration tests for both APIs.  After exporting a
+valid key you can run them from the project root with:
+
+.. code-block:: bash
+
+   pytest --verbose

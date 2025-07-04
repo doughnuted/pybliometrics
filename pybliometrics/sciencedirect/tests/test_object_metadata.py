@@ -1,8 +1,14 @@
 """Tests for ObjectMetadata() class."""
 
+import os
 from collections import namedtuple
 
+import pytest
+
 from pybliometrics.sciencedirect import ObjectMetadata, init
+
+if not os.environ.get("PYBLIOMETRICS_API_KEY"):
+    pytest.skip("PYBLIOMETRICS_API_KEY not set", allow_module_level=True)
 
 init()
 

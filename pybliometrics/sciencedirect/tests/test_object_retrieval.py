@@ -1,11 +1,21 @@
 """Tests for ObjectRetrieval() class."""
+# ruff: noqa
 
+import os
 import xml.etree.ElementTree as ET
 from io import BytesIO
 
-from PIL import Image
+import pytest
+
+try:
+    from PIL import Image
+except Exception:  # pragma: no cover - optional dependency
+    Image = None
 
 from pybliometrics.sciencedirect import ObjectRetrieval, init
+
+if not os.environ.get("PYBLIOMETRICS_API_KEY") or Image is None:
+    pytest.skip("Optional dependencies not configured", allow_module_level=True)
 
 init()
 
