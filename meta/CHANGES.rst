@@ -4,6 +4,15 @@ Change Log
 
 .. toctree::
 
+4.3.1
+-----
+
+2025-07-01
+
+* Export :func:`init` from :mod:`pybliometrics` for convenience.
+* Gracefully fall back to ``0`` when package version metadata is missing.
+* Skip integration tests when the Scopus API is unavailable.
+
 4.3
 ~~~
 
