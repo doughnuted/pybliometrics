@@ -1,6 +1,11 @@
-from importlib.metadata import version
+"""Pybliometrics public API and version metadata."""
 
-__version__ = version("pybliometrics")
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("pybliometrics")
+except PackageNotFoundError:
+    __version__ = "0"
 
 __citation__ = (
     'Rose, Michael E. and John R. Kitchin: "pybliometrics: '
