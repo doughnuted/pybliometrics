@@ -16,6 +16,7 @@ class CitationOverview(Retrieval):
     """
     Class to retrieve citation overview data from Scopus.
     """
+
     @property
     def authors(self) -> Optional[list[Optional[namedtuple]]]:
         """
@@ -107,7 +108,8 @@ class CitationOverview(Retrieval):
 
     @property
     def issn(self) -> Optional[list[Optional[Union[str, tuple[str, str]]]]]:
-        """ISSN of the publishers of the documents.
+        """
+        ISSN of the publishers of the documents.
         Note: If E-ISSN is known to Scopus, this returns both
         ISSN and E-ISSN in random order separated by blank space.
         """
@@ -178,7 +180,8 @@ class CitationOverview(Retrieval):
 
     @property
     def scopus_id(self) -> list[int]:
-        """The Scopus ID(s) of the documents.  Might differ from the
+        """
+        The Scopus ID(s) of the documents.  Might differ from the
         ones provided.
         """
         return [int(e["scopus_id"]) for e in self._identifierlegend]

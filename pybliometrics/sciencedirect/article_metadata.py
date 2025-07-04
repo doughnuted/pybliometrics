@@ -1,6 +1,7 @@
+"""Module for retrieving article metadata from ScienceDirect."""
+
 from __future__ import annotations
 
-"""Module for retrieving article metadata from ScienceDirect."""
 from collections import namedtuple
 
 from pybliometrics.superclasses import Search
@@ -44,11 +45,12 @@ class ArticleMetadata(Search):
 
         """
         fields = (
-            "authorKeywords authors available_online_date first_author abstract_text "
-            "doi title eid link openArchiveArticle openaccess_status openaccessArticle "
-            "openaccessUserLicense pii aggregationType copyright coverDate "
-            "coverDisplayDate edition endingPage isbn publicationName startingPage teaser "
-            "api_link publicationType vor_available_online_date"
+            "authorKeywords authors available_online_date first_author "
+            "abstract_text doi title eid link openArchiveArticle "
+            "openaccess_status openaccessArticle openaccessUserLicense pii "
+            "aggregationType copyright coverDate coverDisplayDate edition "
+            "endingPage isbn publicationName startingPage teaser api_link "
+            "publicationType vor_available_online_date"
         )
         doc = namedtuple("Document", fields)
         check_field_consistency(self._integrity, fields)
@@ -110,31 +112,30 @@ class ArticleMetadata(Search):
         view: str | None = None,
         verbose: bool = False,
         download: bool = True,
-        integrity_fields: list[str] | tuple[str, ...] | None = None,
-        integrity_action: str = "raise",
-        subscriber: bool = True,
-        **kwds: str,
+        **kwargs: str,
     ) -> None:
         """
         Interaction with the ScienceDirect Article Metadata API.
 
-        :param query: A string of the query as used in the `Advanced Search <https://dev.elsevier.com/tecdoc_sdsearch_migration.html>`__.
+        :param query: A string of the query as used in the `Advanced Search
+            <https://dev.elsevier.com/tecdoc_sdsearch_migration.html>`__.
         :param refresh: Whether to refresh the cached file if it exists or not.
                         If int is passed, cached file will be refreshed if the
                         number of days since last modification exceeds that value.
-        :param view: Which view to use for the query, see `the documentation <https://dev.elsevier.com/sd_article_meta_views.html>`__.
-                     Allowed values: `STANDARD`, `COMPLETE`.  If `None`, defaults to
-                     `COMPLETE` if `subscriber=True` and to `STANDARD` if
-                     `subscriber=False`.
+        :param view: Which view to use for the query, see `the documentation
+            <https://dev.elsevier.com/sd_article_meta_views.html>`__.
+            Allowed values: `STANDARD`, `COMPLETE`.  If `None`, defaults to
+            `COMPLETE` if `subscriber=True` and to `STANDARD` if
+            `subscriber=False`.
         :param verbose: Whether to print a download progress bar.
         :param download: Whether to download results (if they have not been
                          cached).
-        :param integrity_fields: A list or tuple with the names of fields whose completeness should
-                                 be checked.  `ArticleMetadata` will perform the
-                                 action specified in `integrity_action` if
-                                 elements in these fields are missing.  This
-                                 helps to avoid idiosynchratically missing
-                                 elements that should always be present
+        :param integrity_fields: A list or tuple with the names of fields whose
+                                 completeness should be checked.  `ArticleMetadata`
+                                 will perform the action specified in
+                                 `integrity_action` if elements in these fields are
+                                 missing.  This helps to avoid idiosynchratically
+                                 missing elements that should always be present
                                  (e.g., EID or source ID).
         :param integrity_action: What to do in case integrity of provided fields
                                  cannot be verified.  Possible actions:
@@ -147,8 +148,9 @@ class ArticleMetadata(Search):
                            corresponding view.
         :param unescape: Convert named and numeric characters in the `results` to
                         their corresponding Unicode characters.
-        :param kwds: Keywords passed on as query parameters.  Must contain
-                     fields and values mentioned in the `API specification <https://dev.elsevier.com/documentation/ArticleMetadataAPI.wadl>`__.
+        :param kwargs: Keywords passed on as query parameters.  Must contain
+                     fields and values mentioned in the `API specification
+                     <https://dev.elsevier.com/documentation/ArticleMetadataAPI.wadl>`__.
 
         Raises
         ------
@@ -166,22 +168,28 @@ class ArticleMetadata(Search):
         the md5-hashed version of `query`.
 
         """
+        # Pop kwargs first before they are used
+        integrity_fields = kwargs.pop("integrity_fields", None)
+        integrity_action = kwargs.pop("integrity_action", "raise")
+        subscriber = kwargs.pop("subscriber", True)
+
         # Check view or set to default
         if view:
             check_parameter_value(view, VIEWS["ArticleMetadata"], "view")
         else:
             view = "COMPLETE" if subscriber else "STANDARD"
 
-        allowed = ("warn", "raise")
-        check_parameter_value(integrity_action, allowed, "integrity_action")
+        allowed_actions = ("warn", "raise")
+        check_parameter_value(integrity_action, allowed_actions, "integrity_action")
 
         # Query
-        self._action = integrity_action
         self._integrity = integrity_fields or []
+        self._action = integrity_action
         self._refresh = refresh
         self._query = query
         self._view = view
-        Search.__init__(self, query=query, download=download, verbose=verbose, **kwds)
+        # Pass remaining kwargs to superclass
+        Search.__init__(self, query=query, download=download, verbose=verbose, **kwargs)
 
     def __str__(self) -> str:
         """Print a summary string."""

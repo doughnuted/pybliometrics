@@ -1,14 +1,17 @@
-import os
-import sys
-from datetime import date
+"""Sphinx configuration."""
 
-sys.path.append(os.path.join(os.path.abspath(os.pardir)))
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+import pybliometrics
+
+sys.path.append(str(Path("..").resolve()))
 autodoc_mock_imports = ["_tkinter"]
 
-cwd = os.getcwd()
-project_root = os.path.dirname(cwd)
-sys.path.insert(0, os.path.abspath("source"))
-sys.path.insert(0, project_root)
+project_root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(project_root / "source"))
+sys.path.insert(0, str(project_root))
 
 # General configuration
 extensions = [
@@ -28,10 +31,10 @@ copybutton_prompt_text = ">>> "
 source_suffix = ".rst"
 master_doc = "index"
 project = "pybliometrics"
+project_copyright = (
+    f"2017-{datetime.now(tz=timezone.utc).year} Michael E. Rose and John Kitchin"
+)
 author = "Michael E. Rose and John Kitchin"
-import pybliometrics
-
-copyright = f"2017-{date.today().year} {author}"
 version = pybliometrics.__version__
 
 language = "en"
@@ -81,17 +84,9 @@ rst_prolog = (
 # -- Options for LaTeX output ---------------------------------------------
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
-    #
-    # 'papersize': 'letterpaper',
     # The font size ('10pt', '11pt' or '12pt').
-    #
-    # 'pointsize': '10pt',
     # Additional stuff for the LaTeX preamble.
-    #
-    # 'preamble': '',
     # Latex figure (float) alignment
-    #
-    # 'figure_align': 'htbp',
 }
 
 latex_documents = [

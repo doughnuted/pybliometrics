@@ -2,21 +2,21 @@
 
 
 # Base classes
-class ScopusException(Exception):
+class ScopusExceptionError(Exception):
     """Base class for exceptions in pybliometrics."""
 
 
-class ScopusError(ScopusException):
+class ScopusError(ScopusExceptionError):
     """Exception for a serious error in pybliometrics."""
 
 
 # Query errors
-class ScopusQueryError(ScopusException):
+class ScopusQueryError(ScopusExceptionError):
     """Exception for problems related to Scopus queries."""
 
 
 # HTML errors
-class ScopusHtmlError(ScopusException):
+class ScopusHtmlError(ScopusExceptionError):
     """Wrapper for exceptions raised by requests."""
 
 
@@ -42,8 +42,9 @@ class Scopus407Error(ScopusHtmlError):
 
 class Scopus413Error(ScopusHtmlError):
     """
-    Raised if a query yields a 413 error (Request Entity Too
-    Large for url).
+    Raised if a query yields a 413 error (Request Entity Too Large for url).
+
+    This typically happens when the request URI is too long.
     """
 
 

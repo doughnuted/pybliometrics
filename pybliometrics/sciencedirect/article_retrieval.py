@@ -1,3 +1,7 @@
+"""Module for retrieving article full-text and metadata from ScienceDirect."""
+
+from __future__ import annotations
+
 from collections import namedtuple
 from typing import Optional, Union
 
@@ -15,6 +19,8 @@ from pybliometrics.utils import (
 
 
 class ArticleRetrieval(Retrieval):
+    """Class to retrieve article full-text and metadata from ScienceDirect."""
+
     @property
     def abstract(self) -> Optional[str]:
         """The abstract of a document."""
@@ -24,7 +30,7 @@ class ArticleRetrieval(Retrieval):
         return abstract
 
     @property
-    def aggregationType(self) -> Optional[str]:
+    def aggregation_type(self) -> Optional[str]:
         """The aggregation type of a document."""
         return chained_get(self._json, ["coredata", "prism:aggregationType"])
 
@@ -45,20 +51,21 @@ class ArticleRetrieval(Retrieval):
         return chained_get(self._json, ["coredata", "prism:copyright"])
 
     @property
-    def coverDate(self) -> Optional[str]:
+    def cover_date(self) -> Optional[str]:
         """The date of the cover the document is in."""
         return chained_get(self._json, ["coredata", "prism:coverDate"])
 
     @property
-    def coverDisplayDate(self) -> Optional[str]:
+    def cover_display_date(self) -> Optional[str]:
         """The cover display date of a document."""
         return chained_get(self._json, ["coredata", "prism:coverDisplayDate"])
 
     @property
     def document_entitlement_status(self) -> Optional[str]:
         """
-        Returns the document entitlement status, i.e. tells if the requestor
-        is entitled to the requested resource.
+        Returns the document entitlement status.
+
+        i.e. tells if the requestor is entitled to the requested resource.
         Note: Only works with `ENTITLED` view.
         """
         return chained_get(self._json, ["document-entitlement", "status"])
@@ -74,10 +81,9 @@ class ArticleRetrieval(Retrieval):
         return chained_get(self._json, ["coredata", "eid"])
 
     @property
-    def endingPage(self) -> Optional[str]:
+    def ending_page(self) -> Optional[str]:
         """The ending page of a document."""
-        page = chained_get(self._json, ["coredata", "prism:endingPage"])
-        return page
+        return chained_get(self._json, ["coredata", "prism:endingPage"])
 
     @property
     def issn(self) -> int:
@@ -91,44 +97,47 @@ class ArticleRetrieval(Retrieval):
         return make_bool_if_possible(open_access)
 
     @property
-    def openaccessSponsorName(self) -> Optional[str]:
+    def openaccess_sponsor_name(self) -> Optional[str]:
         """The open access sponsor name of a document."""
         return chained_get(self._json, ["coredata", "openaccessSponsorName"])
 
     @property
-    def openaccessSponsorType(self) -> Optional[str]:
+    def openaccess_sponsor_type(self) -> Optional[str]:
         """The open access sponsor type of a document."""
         return chained_get(self._json, ["coredata", "openaccessSponsorType"])
 
     @property
-    def openaccessType(self) -> Optional[str]:
+    def openaccess_type(self) -> Optional[str]:
         """The open access type of a document."""
         return chained_get(self._json, ["coredata", "openaccessType"])
 
     @property
-    def openaccessUserLicense(self) -> Optional[str]:
+    def openaccess_user_license(self) -> Optional[str]:
         """The open access user license of a document."""
         return chained_get(self._json, ["coredata", "openaccessUserLicense"])
 
     @property
-    def openArchiveArticle(self) -> bool:
+    def open_archive_article(self) -> bool:
         """The document is an open archive article."""
         open_archive = chained_get(self._json, ["coredata", "openArchiveArticle"])
         return make_bool_if_possible(open_archive)
 
     @property
-    def originalText(self) -> Optional[str]:
+    def original_text(self) -> Optional[str]:
         """Complete document text."""
         return self._json.get("originalText")
 
     @property
-    def pageRange(self) -> Optional[str]:
+    def page_range(self) -> Optional[str]:
         """The prism:pageRange of a document."""
         return chained_get(self._json, ["coredata", "prism:pageRange"])
 
     @property
-    def publicationName(self) -> str:
-        """The publication name of a document (e.g. Journal of Economy and Technology)."""
+    def publication_name(self) -> str:
+        """
+        The publication name of a document (e.g. Journal of Economy and
+        Technology).
+        """
         return chained_get(self._json, ["coredata", "prism:publicationName"])
 
     @property
@@ -137,7 +146,7 @@ class ArticleRetrieval(Retrieval):
         return chained_get(self._json, ["coredata", "prism:publisher"])
 
     @property
-    def pubType(self) -> Optional[str]:
+    def pub_type(self) -> Optional[str]:
         """The publication type of a document."""
         return chained_get(self._json, ["coredata", "pubType"])
 
@@ -153,6 +162,7 @@ class ArticleRetrieval(Retrieval):
         for link in links:
             if link["@rel"] == "scidir":
                 return link["@href"]
+        return None  # Should ideally not happen or raise error
 
     @property
     def self_link(self) -> str:
@@ -161,9 +171,10 @@ class ArticleRetrieval(Retrieval):
         for link in links:
             if link["@rel"] == "self":
                 return link["@href"]
+        return None  # Should ideally not happen or raise error
 
     @property
-    def startingPage(self) -> Optional[str]:
+    def starting_page(self) -> Optional[str]:
         """The starting page of a document."""
         return chained_get(self._json, ["coredata", "prism:startingPage"])
 
@@ -192,11 +203,12 @@ class ArticleRetrieval(Retrieval):
     def __init__(
         self,
         identifier: Union[int, str],
-        refresh: Union[bool, int] = False,
+        *,
+        refresh: bool | int = False,
         view: str = "META",
         id_type: Optional[str] = None,
         **kwds: str,
-    ):
+    ) -> None:
         """
         Interaction with the Article Retrieval API.
 
@@ -205,7 +217,8 @@ class ArticleRetrieval(Retrieval):
                         If int is passed, cached file will be refreshed if the
                         number of days since last modification exceeds that value.
         :param view: The view of the file that should be downloaded. Allowed values:
-                     `META`, `META_ABS`, `META_ABS_REF`, `FULL`, `ENTITLED`. Default: `META`.
+                     `META`, `META_ABS`, `META_ABS_REF`, `FULL`, `ENTITLED`.
+                     Default: `META`.
         :param id_type: The type of used ID. Allowed values: `None`, `eid`, `pii`,
                         `scopus_id`, `pubmed_id` and `doi`.  If the value is `None`,
                         pybliometrics tries to infer the ID type itself.
@@ -225,7 +238,8 @@ class ArticleRetrieval(Retrieval):
         if self._view != "ENTITLED":
             self._json = self._json["full-text-retrieval-response"]
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return a string representation of the article."""
         s = ""
         if self._view in ("FULL", "META_ABS", "META"):
             if self.authors:

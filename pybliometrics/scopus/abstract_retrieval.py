@@ -1,5 +1,9 @@
+"""Module for Scopus Abstract Retrieval API."""
+
+from __future__ import annotations
+
 from collections import defaultdict, namedtuple
-from typing import Optional, Union
+from typing import Optional, Union  # Re-added Optional
 
 from pybliometrics.superclasses import Retrieval
 from pybliometrics.utils import (
@@ -17,19 +21,35 @@ from pybliometrics.utils import (
 
 
 class AbstractRetrieval(Retrieval):
+    """
+    Class to retrieve a Scopus abstract.
+
+    Notes
+    -----
+    The Scopus Abstract Retrieval API covers all Scopus documents.
+    For more information, see https://dev.elsevier.com/documentation/AbstractRetrievalAPI.wadl.
+
+    For a list of fields that can be downloaded, see
+    https://dev.elsevier.com/sc_abstract_retrieval_views.html.
+    Not all fields are available for all documents.
+
+    """
+
     @property
-    def abstract(self) -> Optional[str]:
+    def abstract(self) -> str | None:
         """
         The abstract of a document.
+
         Note: If this is empty, try `description` property instead.
         """
         return self._head.get("abstracts")
 
     @property
-    def affiliation(self) -> Optional[list[namedtuple]]:
+    def affiliation(self) -> list[namedtuple] | None:
         """
-        A list of namedtuples representing listed affiliations in
-        the form `(id, name, city, country)`.
+        A list of namedtuples representing listed affiliations.
+
+        The form is `(id, name, city, country)`.
         """
         out = []
         aff = namedtuple("Affiliation", "id name city country")
@@ -45,13 +65,13 @@ class AbstractRetrieval(Retrieval):
         return out or None
 
     @property
-    def aggregationType(self) -> str:
-        """Aggregation type of source the document is published in."""
+    def aggregation_type(self) -> str:
+        """Return the aggregation type of source the document is published in."""
         return chained_get(self._json, ["coredata", "prism:aggregationType"])
 
     @property
-    def authkeywords(self) -> Optional[list[str]]:
-        """List of author-provided keywords of the document."""
+    def authkeywords(self) -> list[str] | None:
+        """Return a list of author-provided keywords of the document."""
         keywords = self._json.get("authkeywords")
         if not keywords:
             return None
@@ -61,13 +81,16 @@ class AbstractRetrieval(Retrieval):
             return [keywords["author-keyword"]["$"]]
 
     @property
-    def authorgroup(self) -> Optional[list[namedtuple]]:
+    def authorgroup(self) -> list[namedtuple] | None:
         """
-        A list of namedtuples representing the article's authors and collaborations
-        organized by affiliation, in the form `(affiliation_id, collaboration_id, dptid,
-        organization, city, postalcode, addresspart, country, auid, orcid,
-        indexed_name, surname, given_name)`.
+        A list of namedtuples representing the article's authors and collaborations.
+
+        Organized by affiliation, in the form:
+        `(affiliation_id, collaboration_id, dptid, organization, city, postalcode,
+        addresspart, country, auid, orcid, indexed_name, surname, given_name)`.
+
         If `given_name` is not present, fall back to initials.
+
         Note: Affiliation information might be missing or mal-assigned even
         when it looks correct in the web view.  In this case please request
         a correction.  It is generally missing for collaborations.
@@ -122,11 +145,13 @@ class AbstractRetrieval(Retrieval):
         return out or None
 
     @property
-    def authors(self) -> Optional[list[namedtuple]]:
+    def authors(self) -> list[namedtuple] | None:
         """
-        A list of namedtuples representing the article's authors, in the
-        form `(auid, indexed_name, surname, given_name, affiliation)`.  In case
-        multiple affiliation IDs are given, they are joined on `";"`.
+        A list of namedtuples representing the article's authors.
+
+        The form is `(auid, indexed_name, surname, given_name, affiliation)`.
+        In case multiple affiliation IDs are given, they are joined on `";"`.
+
         Note: The affiliation referred to here is what Scopus' algorithm
         determined as the main affiliation.  Property `authorgroup` provides
         all affiliations.
@@ -151,22 +176,23 @@ class AbstractRetrieval(Retrieval):
         return out or None
 
     @property
-    def citedby_count(self) -> Optional[int]:
-        """Number of articles citing the document."""
+    def citedby_count(self) -> int | None:
+        """Return the number of articles citing the document."""
         path = ["coredata", "citedby-count"]
         return make_int_if_possible(chained_get(self._json, path))
 
     @property
     def citedby_link(self) -> str:
-        """URL to Scopus page listing citing documents."""
+        """Return the URL to Scopus page listing citing documents."""
         return get_link(self._json, 2)
 
     @property
-    def chemicals(self) -> Optional[list[namedtuple]]:
+    def chemicals(self) -> list[namedtuple] | None:
         """
-        List of namedtuples representing chemical entities in the form
-        `(source, chemical_name, cas_registry_number)`.  In case multiple
-        numbers given, they are joined on `";"`.
+        Return a list of namedtuples representing chemical entities.
+
+        The form is `(source, chemical_name, cas_registry_number)`.
+        In case multiple numbers given, they are joined on `";"`.
         """
         path = ["enhancement", "chemicalgroup", "chemicals"]
         items = listify(chained_get(self._head, path, []))
@@ -189,15 +215,16 @@ class AbstractRetrieval(Retrieval):
         return out or None
 
     @property
-    def confcode(self) -> Optional[int]:
-        """Code of the conference the document belongs to."""
+    def confcode(self) -> int | None:
+        """Return the code of the conference the document belongs to."""
         return make_int_if_possible(self._confevent.get("confcode"))
 
     @property
-    def confdate(self) -> Optional[tuple[tuple[int, int], tuple[int, int]]]:
+    def confdate(self) -> tuple[tuple[int, int], tuple[int, int]] | None:
         """
-        Date range of the conference the document belongs to represented
-        by two tuples in the form (YYYY, MM, DD).
+        Return the date range of the conference the document belongs to.
+
+        Represented by two tuples in the form (YYYY, MM, DD).
         """
         dates = self._confevent.get("confdate", {})
         try:
@@ -209,18 +236,18 @@ class AbstractRetrieval(Retrieval):
             return None
 
     @property
-    def conflocation(self) -> Optional[str]:
-        """Location of the conference the document belongs to."""
+    def conflocation(self) -> str | None:
+        """Return the location of the conference the document belongs to."""
         return chained_get(self._confevent, ["conflocation", "city-group"])
 
     @property
-    def confname(self) -> Optional[str]:
-        """Name of the conference the document belongs to."""
+    def confname(self) -> str | None:
+        """Return the name of the conference the document belongs to."""
         return self._confevent.get("confname")
 
     @property
-    def confsponsor(self) -> Optional[Union[list[str], str]]:
-        """Sponsor(s) of the conference the document belongs to."""
+    def confsponsor(self) -> list[str] | str | None:
+        """Return the sponsor(s) of the conference the document belongs to."""
         path = ["confsponsors", "confsponsor"]
         sponsors = chained_get(self._confevent, path, [])
         if len(sponsors) == 0:
@@ -230,10 +257,11 @@ class AbstractRetrieval(Retrieval):
         return sponsors
 
     @property
-    def contributor_group(self) -> Optional[list[namedtuple]]:
+    def contributor_group(self) -> list[namedtuple] | None:
         """
-        List of namedtuples representing contributors compiled by Scopus,
-        in the form `(given_name, initials, surname, indexed_name, role)`.
+        Return a list of namedtuples representing contributors compiled by Scopus.
+
+        The form is `(given_name, initials, surname, indexed_name, role)`.
         """
         path = ["source", "contributor-group"]
         items = listify(chained_get(self._head, path, []))
@@ -254,22 +282,23 @@ class AbstractRetrieval(Retrieval):
 
     @property
     def copyright(self) -> str:
-        """The copyright statement of the document."""
+        """Return the copyright statement of the document."""
         path = ["item", "bibrecord", "item-info", "copyright", "$"]
         return chained_get(self._json, path)
 
     @property
     def copyright_type(self) -> str:
-        """The copyright holder of the document."""
+        """Return the copyright holder of the document."""
         path = ["item", "bibrecord", "item-info", "copyright", "@type"]
         return chained_get(self._json, path)
 
     @property
-    def correspondence(self) -> Optional[list[namedtuple]]:
+    def correspondence(self) -> list[namedtuple] | None:
         """
-        List of namedtuples representing the authors to whom correspondence
-        should be addressed, in the form ´(surname, initials, organization,
-        country, city_group)´. Multiple organziations are joined on semicolon.
+        Return a list of namedtuples representing the authors for correspondence.
+
+        The form is `(surname, initials, organization, country, city_group)`.
+        Multiple organizations are joined on semicolon.
         """
         fields = "surname initials organization country city_group"
         auth = namedtuple("Correspondence", fields)
@@ -296,15 +325,13 @@ class AbstractRetrieval(Retrieval):
         return out or None
 
     @property
-    def coverDate(self) -> str:
-        """The date of the cover the document is in."""
+    def cover_date(self) -> str:
+        """Return the date of the cover the document is in."""
         return chained_get(self._json, ["coredata", "prism:coverDate"])
 
     @property
-    def date_created(self) -> Optional[tuple[int, int, int]]:
-        """
-        Return the `date_created` of a record.
-        """
+    def date_created(self) -> tuple[int, int, int] | None:
+        """Return the `date_created` of a record."""
         path = ["item", "bibrecord", "item-info", "history"]
         d = chained_get(self._json, path, {})
         try:
@@ -313,47 +340,55 @@ class AbstractRetrieval(Retrieval):
             return None
 
     @property
-    def description(self) -> Optional[str]:
+    def description(self) -> str | None:
         """
         Return the description of a record.
+
         Note: If this is empty, try `abstract` property instead.
         """
         return chained_get(self._json, ["coredata", "dc:description"])
 
     @property
-    def document_entitlement_status(self) -> Optional[str]:
+    def document_entitlement_status(self) -> str | None:
         """
-        Returns the document entitlement status, i.e. tells if the requestor
-        is entitled to the requested resource.
+        Return the document entitlement status.
+
+        i.e. tells if the requestor is entitled to the requested resource.
+
         Note: Only works with `ENTITLED` view.
         """
         return chained_get(self._json, ["document-entitlement", "status"])
 
     @property
-    def doi(self) -> Optional[str]:
-        """DOI of the document."""
+    def doi(self) -> str | None:
+        """Return the DOI of the document."""
         return chained_get(self._json, ["coredata", "prism:doi"])
 
     @property
     def eid(self) -> str:
-        """EID of the document."""
+        """Return the EID of the document."""
         return chained_get(self._json, ["coredata", "eid"])
 
     @property
-    def endingPage(self) -> Optional[str]:
-        """Ending page. If this is empty, try `pageRange` property instead."""
+    def ending_page(self) -> str | None:
+        """
+        Return the ending page.
+
+        If this is empty, try `pageRange` property instead.
+        """
         # Try coredata first, fall back to head afterwards
         ending = chained_get(self._json, ["coredata", "prism:endingPage"])
-        if not ending:
-            path = ["source", "volisspag", "pagerange", "@last"]
-            ending = chained_get(self._head, path)
-        return ending
+        if ending:
+            return ending
+        path = ["source", "volisspag", "pagerange", "@last"]
+        return chained_get(self._head, path)
 
     @property
-    def funding(self) -> Optional[list[namedtuple]]:
+    def funding(self) -> list[namedtuple] | None:
         """
-        List of namedtuples parsed funding information in the form
-        `(agency, agency_id, string, funding_id, acronym, country)`.
+        Return a list of namedtuples parsed funding information.
+
+        The form is `(agency, agency_id, string, funding_id, acronym, country)`.
         """
 
         def _get_funding_id(f_dict: dict) -> list:
@@ -381,15 +416,16 @@ class AbstractRetrieval(Retrieval):
         return out or None
 
     @property
-    def funding_text(self) -> Optional[str]:
-        """The raw text from which Scopus derives funding information."""
+    def funding_text(self) -> str | None:
+        """Return the raw text from which Scopus derives funding information."""
         path = ["item", "xocs:meta", "xocs:funding-list", "xocs:funding-text"]
         return chained_get(self._json, path)
 
     @property
-    def isbn(self) -> Optional[tuple[str, ...]]:
+    def isbn(self) -> tuple[str, ...] | None:
         """
-        ISBNs `Optional[str]` to publicationName as tuple of variying length,
+        Return ISBNs to publicationName as tuple of varying length.
+
         (e.g. ISBN-10 or ISBN-13).
         """
         isbns = listify(chained_get(self._head, ["source", "isbn"], []))
@@ -398,9 +434,10 @@ class AbstractRetrieval(Retrieval):
         return tuple(i["$"] for i in isbns)
 
     @property
-    def issn(self) -> Optional[namedtuple]:
+    def issn(self) -> namedtuple | None:
         """
-        Namedtuple in the form `(print electronic)`.
+        Return a namedtuple in the form `(print electronic)`.
+
         Note: If the source has an E-ISSN, the META view will return None.
         Use FULL view instead.
         """
@@ -414,9 +451,9 @@ class AbstractRetrieval(Retrieval):
                 container["print"] = t
         # Parse information from coredata as fallback
         fallback = chained_get(self._json, ["coredata", "prism:issn"])
-        if fallback and len(container) < 2:
+        if fallback and len(container) < 2:  # PLR2004: Magic value 2
             parts = fallback.split()
-            if len(parts) == 2:
+            if len(parts) == 2:  # PLR2004: Magic value 2
                 if len(container) == 1:
                     for n, o in (("electronic", "print"), ("print", "electronic")):
                         if n not in container:
@@ -434,15 +471,15 @@ class AbstractRetrieval(Retrieval):
 
     @property
     def identifier(self) -> int:
-        """ID of the document (same as EID without "2-s2.0-")."""
+        """Return the ID of the document (same as EID without "2-s2.0-")."""
         return get_id(self._json)
 
     @property
-    def idxterms(self) -> Optional[list[str]]:
+    def idxterms(self) -> list[str] | None:
         """
-        List of index terms (these are just one category of those
-        Scopus provides in the web version)
-        .
+        Return a list of index terms.
+
+        These are just one category of those Scopus provides in the web version.
         """
         try:
             terms = listify(self._json.get("idxterms", {}).get("mainterm", []))
@@ -454,38 +491,40 @@ class AbstractRetrieval(Retrieval):
             return None
 
     @property
-    def issueIdentifier(self) -> Optional[str]:
-        """Number of the issue the document was published in."""
+    def issue_identifier(self) -> str | None:
+        """Return the number of the issue the document was published in."""
         return chained_get(self._json, ["coredata", "prism:issueIdentifier"])
 
     @property
-    def issuetitle(self) -> Optional[str]:
-        """Title of the issue the document was published in."""
+    def issuetitle(self) -> str | None:
+        """Return the title of the issue the document was published in."""
         return chained_get(self._head, ["source", "issuetitle"])
 
     @property
-    def language(self) -> Optional[str]:
-        """Language of the article."""
+    def language(self) -> str | None:
+        """Return the language of the article."""
         return chained_get(self._json, ["language", "@xml:lang"])
 
     @property
-    def openaccess(self) -> Optional[int]:
-        """The openaccess status encoded in single digits."""
+    def openaccess(self) -> int | None:
+        """Return the openaccess status encoded in single digits."""
         path = ["coredata", "openaccess"]
         return make_int_if_possible(chained_get(self._json, path))
 
     @property
-    def openaccessFlag(self) -> Optional[bool]:
-        """Whether the document is available via open access or not."""
+    def openaccess_flag(self) -> bool | None:
+        """Return whether the document is available via open access or not."""
         flag = chained_get(self._json, ["coredata", "openaccessFlag"])
         if flag:
             flag = flag == "true"
         return flag
 
     @property
-    def pageRange(self) -> Optional[str]:
+    def page_range(self) -> str | None:
         """
-        Page range.  If this is empty, try `startingPage` and
+        Return the page range.
+
+        If this is empty, try `startingPage` and
         `endingPage` properties instead.
         """
         # Try data from coredata first, fall back to head afterwards
@@ -495,19 +534,20 @@ class AbstractRetrieval(Retrieval):
         return pages
 
     @property
-    def pii(self) -> Optional[str]:
-        """The PII (Publisher Item Identifier) of the document."""
+    def pii(self) -> str | None:
+        """Return the PII (Publisher Item Identifier) of the document."""
         return chained_get(self._json, ["coredata", "pii"])
 
     @property
-    def publicationName(self) -> Optional[str]:
-        """Name of source the document is published in."""
+    def publication_name(self) -> str | None:
+        """Return the name of source the document is published in."""
         return chained_get(self._json, ["coredata", "prism:publicationName"])
 
     @property
-    def publisher(self) -> Optional[str]:
+    def publisher(self) -> str | None:
         """
-        Name of the publisher of the document.
+        Return the name of the publisher of the document.
+
         Note: Information provided in the FULL view of the article might be
         more complete.
         """
@@ -518,20 +558,21 @@ class AbstractRetrieval(Retrieval):
         return full
 
     @property
-    def publisheraddress(self) -> Optional[str]:
-        """Name of the publisher of the document."""
+    def publisher_address(self) -> str | None:
+        """Return the address of the publisher of the document."""
         return chained_get(self._head, ["source", "publisher", "publisheraddress"])
 
     @property
-    def pubmed_id(self) -> Optional[int]:
-        """The PubMed ID of the document."""
+    def pubmed_id(self) -> int | None:
+        """Return the PubMed ID of the document."""
         path = ["coredata", "pubmed-id"]
         return make_int_if_possible(chained_get(self._json, path))
 
     @property
-    def refcount(self) -> Optional[int]:
+    def refcount(self) -> int | None:
         """
-        Number of references of an article.
+        Return the number of references of an article.
+
         Note: Requires either the FULL view or REF view.
         """
         try:  # REF view
@@ -543,42 +584,58 @@ class AbstractRetrieval(Retrieval):
                 return None
 
     @property
-    def references(self) -> Optional[list[namedtuple]]:
+    def references(self) -> list[namedtuple] | None:
         """
-        List of namedtuples representing references listed in the document,
-        in the form `(position, id, doi, title, authors, authors_auid,
-        authors_affiliationid, sourcetitle, publicationyear, coverDate, volume,
-        issue, first, last, citedbycount, type, text, fulltext)`.
+        Return a list of namedtuples representing references listed in the document.
 
-        `position` is the number at which the reference appears in the
-        document, `id` is the Scopus ID of the referenced document (EID
-        without the "2-s2.0-"), `authors` is a string of the names of the
-        authors in the format "Surname1, Initials1; Surname2, Initials2",
-        `authors_auid` is a string of the author IDs joined on "; ",
-        `authors_affiliationid` is a string of the authors' affiliation IDs
-        joined on "; ", `sourcetitle` is the name of the source (e.g. the
-        journal), `publicationyear` is the year of the publication as string
-        (FULL view only), `coverDate` is the date of the publication as string
-        (REF view only), `volume` and `issue`, are strings referring to the
-        volume and issue, `first` and `last` refer to the page range,
-        `citedbycount` the total number of citations of the cited item (REF
-        view only), `type` describes the parsing status of the reference
-        (resolved or not), `text` is information on the publication,
-        `fulltext` is the text the authors used for the reference.
+        The form is:
+        `(position, id, doi, title, authors, authors_auid, authors_affiliationid,
+        sourcetitle, publicationyear, coverDate, volume, issue, first, last,
+        citedbycount, type, text, fulltext)`.
+
+        Fields:
+        - `position`: Number at which the reference appears.
+        - `id`: Scopus ID of the referenced document (EID without "2-s2.0-").
+        - `authors`: String of author names ("Surname1, Initials1; ...").
+        - `authors_auid`: String of author IDs, joined by "; ".
+        - `authors_affiliationid`: String of author affiliation IDs, joined by "; ".
+        - `sourcetitle`: Name of the source (e.g., journal).
+        - `publicationyear`: Year of publication (FULL view only).
+        - `coverDate`: Date of publication (REF view only).
+        - `volume`, `issue`: Volume and issue strings.
+        - `first`, `last`: Page range.
+        - `citedbycount`: Total citations of the cited item (REF view only).
+        - `type`: Parsing status of the reference (resolved or not).
+        - `text`: Information on the publication.
+        - `fulltext`: Text authors used for the reference.
 
         Note: Requires either the FULL view or REF view.
-        Might be empty even if refcount is positive.  Specific fields can
-        be empty.
-        The lists `authors` and `authors_auid` may contain duplicates because of
-        the 1:1 pairing with the list `authors_affiliationid`.
+        Might be empty even if `refcount` is positive. Specific fields can be empty.
+        `authors` and `authors_auid` lists may contain duplicates due to 1:1
+        pairing with `authors_affiliationid`.
         """
         out = []
-        fields = (
-            "position id doi title authors authors_auid "
-            "authors_affiliationid sourcetitle publicationyear coverDate "
-            "volume issue first last citedbycount type text fulltext"
+        field_names = (
+            "position",
+            "id",
+            "doi",
+            "title",
+            "authors",
+            "authors_auid",
+            "authors_affiliationid",
+            "sourcetitle",
+            "publicationyear",
+            "coverDate",
+            "volume",
+            "issue",
+            "first",
+            "last",
+            "citedbycount",
+            "type",
+            "text",
+            "fulltext",
         )
-        ref = namedtuple("Reference", fields)
+        ref = namedtuple("Reference", field_names)
         items = listify(self._ref.get("reference", []))
         for item in items:
             try:
@@ -643,19 +700,20 @@ class AbstractRetrieval(Retrieval):
 
     @property
     def scopus_link(self) -> str:
-        """URL to the document page on Scopus."""
+        """Return the URL to the document page on Scopus."""
         return get_link(self._json, 1)
 
     @property
     def self_link(self) -> str:
-        """URL to Scopus API page of this document."""
+        """Return the URL to Scopus API page of this document."""
         return get_link(self._json, 0)
 
     @property
-    def sequencebank(self) -> Optional[list[namedtuple]]:
+    def sequencebank(self) -> list[namedtuple] | None:
         """
-        List of namedtuples representing biological entities defined or
-        mentioned in the text, in the form `(name, sequence_number, type)`.
+        Return a list of namedtuples representing biological entities.
+
+        Defined or mentioned in the text, in the form `(name, sequence_number, type)`.
         """
         path = ["enhancement", "sequencebanks", "sequencebank"]
         items = listify(chained_get(self._head, path, []))
@@ -673,42 +731,50 @@ class AbstractRetrieval(Retrieval):
         return out or None
 
     @property
-    def source_id(self) -> Optional[int]:
-        """Scopus source ID of the document."""
+    def source_id(self) -> int | None:
+        """Return the Scopus source ID of the document."""
         path = ["coredata", "source-id"]
         return make_int_if_possible(chained_get(self._json, path))
 
     @property
-    def sourcetitle_abbreviation(self) -> Optional[str]:
+    def sourcetitle_abbreviation(self) -> str | None:
         """
-        Abbreviation of the source the document is published in.
+        Return the abbreviation of the source the document is published in.
+
         Note: Requires the FULL view of the article.
         """
         return self._head.get("source", {}).get("sourcetitle-abbrev")
 
     @property
-    def srctype(self) -> Optional[str]:
+    def srctype(self) -> str | None:
         """
-        Aggregation type of source the document is published in (short
-        version of aggregationType).
+        Return the aggregation type of source the document is published in.
+
+        Short version of aggregationType.
         """
         return chained_get(self._json, ["coredata", "srctype"])
 
     @property
-    def startingPage(self) -> Optional[str]:
-        """Starting page.  If this is empty, try `pageRange` property instead."""
+    def starting_page(self) -> str | None:
+        """
+        Return the starting page.
+
+        If this is empty, try `pageRange` property instead.
+        """
         # Try coredata first, fall back to bibrecord afterwards
         starting = chained_get(self._json, ["coredata", "prism:startingPage"])
-        if not starting:
-            path = ["source", "volisspag", "pagerange", "@first"]
-            starting = chained_get(self._head, path)
-        return starting
+        if starting:
+            return starting
+        path = ["source", "volisspag", "pagerange", "@first"]
+        return chained_get(self._head, path)
 
     @property
-    def subject_areas(self) -> Optional[list[namedtuple]]:
+    def subject_areas(self) -> list[namedtuple] | None:
         """
-        List of namedtuples containing subject areas of the article
-        in the form `(area abbreviation code)`.
+        Return a list of namedtuples containing subject areas of the article.
+
+        In the form `(area abbreviation code)`.
+
         Note: Requires the FULL view of the article.
         """
         area = namedtuple("Area", "area abbreviation code")
@@ -720,99 +786,103 @@ class AbstractRetrieval(Retrieval):
         return out or None
 
     @property
-    def subtype(self) -> str:
+    def subtype(self) -> str | None:
         """
-        Type of the document.  Refer to the Scopus Content Coverage Guide
+        Return the type of the document.
+
+        Refer to the Scopus Content Coverage Guide
         for a list of possible values.  Short version of subtypedescription.
         """
         return chained_get(self._json, ["coredata", "subtype"]) or None
 
     @property
-    def subtypedescription(self) -> str:
+    def subtype_description(self) -> str | None:
         """
-        Type of the document.  Refer to the Scopus Content Coverage Guide
+        Return the type of the document.
+
+        Refer to the Scopus Content Coverage Guide
         for a list of possible values.  Long version of subtype.
         """
         return chained_get(self._json, ["coredata", "subtypeDescription"]) or None
 
     @property
-    def title(self) -> Optional[str]:
-        """Title of the document."""
+    def title(self) -> str | None:
+        """Return the title of the document."""
         return chained_get(self._json, ["coredata", "dc:title"])
 
     @property
-    def url(self) -> Optional[str]:
-        """URL to the API view of the document."""
+    def url(self) -> str | None:
+        """Return the URL to the API view of the document."""
         return chained_get(self._json, ["coredata", "prism:url"])
 
     @property
-    def volume(self) -> Optional[str]:
-        """Volume for the document."""
+    def volume(self) -> str | None:
+        """Return the volume for the document."""
         return chained_get(self._json, ["coredata", "prism:volume"])
 
     @property
-    def website(self) -> str:
-        """Website of publisher."""
+    def website(self) -> str | None:
+        """Return the website of publisher."""
         path = ["source", "website", "ce:e-address", "$"]
         return chained_get(self._head, path)
 
     def __init__(
         self,
-        identifier: Union[int, str] = None,
+        identifier: Optional[Union[int, str]] = None,
+        *,
         refresh: Union[bool, int] = False,
         view: str = "META_ABS",
-        id_type: str = None,
+        id_type: Optional[str] = None,
         **kwds: str,
     ) -> None:
         """
-        Interaction with the Abstract Retrieval API.
+        Initialize the Abstract Retrieval API interaction.
 
-        :param identifier: The identifier of a document.  Can be the Scopus EID
-                           , the Scopus ID, the PII, the Pubmed-ID or the DOI.
-        :param refresh: Whether to refresh the cached file if it exists or not.
-                        If int is passed, cached file will be refreshed if the
+        :param identifier: The identifier of a document. Can be the Scopus EID,
+                           the Scopus ID, the PII, the Pubmed-ID, or the DOI.
+        :param refresh: Whether to refresh the cached file if it exists.
+                        If an int is passed, the cached file will be refreshed if the
                         number of days since last modification exceeds that value.
         :param id_type: The type of used ID. Allowed values: None, 'eid', 'pii',
-                        'scopus_id', 'pubmed_id', 'doi'.  If the value is None,
-                        the function tries to infer the ID type itself.
-        :param view: The view of the file that should be downloaded.  Allowed
-                     values: META, META_ABS, REF, FULL, ENTITLED, where FULL includes all
-                     information of META_ABS view and META_ABS includes all
-                     information of the META view.  For details see
+                        'scopus_id', 'pubmed_id', 'doi'. If None,
+                        the function tries to infer the ID type.
+        :param view: The view of the file to download. Allowed values: META,
+                     META_ABS, REF, FULL, ENTITLED. FULL includes all
+                     information of META_ABS, which includes all of META.
+                     For details, see
                      https://dev.elsevier.com/sc_abstract_retrieval_views.html.
-                     Note: `ENTITLED` view only contains the `document_entitlement_status`.
-        :param kwds: Keywords passed on as query parameters.  Must contain
-                     fields and values listed in the API specification at
+                     Note: `ENTITLED` view only contains `document_entitlement_status`.
+        :param kwds: Keywords passed as query parameters. Must contain
+                     fields and values from the API specification at
                      https://dev.elsevier.com/documentation/AbstractRetrievalAPI.wadl.
 
         Raises
         ------
         ValueError
-            If any of the parameters `id_type`, `refresh` or `view` is not
-            one of the allowed values.
+            If `id_type`, `refresh`, or `view` is not an allowed value.
 
         Notes
         -----
         The directory for cached results is `{path}/{view}/{identifier}`,
-        where `path` is specified in your configuration file.  In case
-        `identifier` is a DOI, an underscore replaces the forward slash.
+        where `path` is specified in your configuration file.
+        If `identifier` is a DOI, an underscore replaces the forward slash.
 
         """
         # Checks
-        identifier = str(identifier)
+        identifier_str = str(identifier) if identifier is not None else None
         check_parameter_value(view, VIEWS["AbstractRetrieval"], "view")
-        if id_type is None:
-            id_type = detect_id_type(identifier)
-        else:
+        if id_type is None and identifier_str is not None:
+            id_type = detect_id_type(identifier_str)
+        elif id_type is not None:
             allowed_id_types = ("eid", "pii", "scopus_id", "pubmed_id", "doi")
             check_parameter_value(id_type, allowed_id_types, "id_type")
 
         # Load json
         self._view = view
         self._refresh = refresh
-        Retrieval.__init__(self, identifier=identifier, id_type=id_type, **kwds)
-        if self._view in ("META", "META_ABS", "REF", "FULL"):
-            self._json = self._json["abstracts-retrieval-response"]
+        Retrieval.__init__(self, identifier=identifier_str, id_type=id_type, **kwds)
+        if self._json and self._view in ("META", "META_ABS", "REF", "FULL"):
+            self._json = self._json.get("abstracts-retrieval-response", self._json)
         self._head = chained_get(self._json, ["item", "bibrecord", "head"], {})
         conf_path = ["source", "additional-srcinfo", "conferenceinfo", "confevent"]
         self._confevent = chained_get(self._head, conf_path, {})
@@ -822,215 +892,272 @@ class AbstractRetrieval(Retrieval):
             ref_path = ["item", "bibrecord", "tail", "bibliography"]
         self._ref = chained_get(self._json, ref_path, {})
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
-        Return pretty text version of the document.
+        Return a pretty text version of the document.
 
         Assumes the document is a journal article and was loaded with
         view="META_ABS" or view="FULL".
         """
 
-        def convert_citedbycount(entry):
+        def convert_citedbycount(entry: namedtuple) -> float:
+            """Convert cited-by count to float, return 0.0 on error."""
             try:
-                return float(entry.citedbycount) or 0
+                return float(entry.citedbycount) or 0.0
             except (ValueError, TypeError):
-                return 0
+                return 0.0
 
-        def get_date(coverDate):
+        def get_date_str(cover_date_val: Optional[str]) -> Optional[str]:
+            """Extract year from cover date string."""
             try:
-                return coverDate[:4]
+                return cover_date_val[:4] if cover_date_val else None
             except TypeError:
                 return None
 
+        s = ""
         if self._view in ("FULL", "META_ABS", "META"):
-            date = self.get_cache_file_mdate().split()[0]
-            # Authors
+            date_str = self.get_cache_file_mdate().split()[0]
+            authors_str = "(No author found)"
             if self.authors:
                 if len(self.authors) > 1:
-                    authors = _list_authors(self.authors)
-                else:
+                    authors_str = _list_authors(self.authors)
+                elif self.authors:  # Should be len == 1
                     a = self.authors[0]
-                    authors = str(a.given_name) + " " + str(a.surname)
-            else:
-                authors = "(No author found)"
-            # All other information
-            s = f'{authors}: "{self.title}", {self.publicationName}, {self.volume}'
-            if self.issueIdentifier:
-                s += f"({self.issueIdentifier})"
-            s += ", "
-            s += _parse_pages(self)
-            s += f"({self.coverDate[:4]})."
+                    authors_str = f"{a.given_name or ''} {a.surname or ''}".strip()
+
+            title_str = self.title or ""
+            pub_name_str = self.publication_name or ""
+            volume_str = self.volume or ""
+
+            s_parts = [f'{authors_str}: "{title_str}", {pub_name_str}, {volume_str}']
+            if self.issue_identifier:
+                s_parts.append(f"({self.issue_identifier})")
+            s_parts.append(", ")
+            s_parts.append(_parse_pages(self))
+            cover_date_year = (self.cover_date or "----")[:4]
+            s_parts.append(f"({cover_date_year}).")
             if self.doi:
-                s += f" https://doi.org/{self.doi}.\n"
-            s += f"{self.citedby_count} citation(s) as of {date}"
+                s_parts.append(f" https://doi.org/{self.doi}.\n")
+            s_parts.append(f"{self.citedby_count or 0} citation(s) as of {date_str}")
             if self.affiliation:
-                s += "\n  Affiliation(s):\n   "
-                s += "\n   ".join([aff.name for aff in self.affiliation])
+                s_parts.append("\n  Affiliation(s):\n   ")
+                s_parts.append(
+                    "\n   ".join([aff.name for aff in self.affiliation if aff.name])
+                )
+            s = "".join(s_parts)
 
         elif self._view in ("REF",):
-            try:
-                # Sort reference list by citationcount
-                top_n = 5
-                references = sorted(
-                    self.references, key=convert_citedbycount, reverse=True
-                )
-
-                top_references = [
-                    f"{reference.title} ({get_date(reference.coverDate)}). "
-                    f"EID: {reference.id}"
-                    for reference in references[:top_n]
-                ]
-            except TypeError:
-                top_n = 0
+            top_n = 5
+            top_references = []
+            if self.references:
+                try:
+                    references_list = self.references
+                    references_sorted = sorted(
+                        references_list, key=convert_citedbycount, reverse=True
+                    )
+                    top_references = [
+                        f"{ref.title or ''} ({get_date_str(ref.coverDate) or 'N/A'}). "
+                        f"EID: {ref.id or 'N/A'}"
+                        for ref in references_sorted[:top_n]
+                    ]
+                except TypeError:
+                    pass
 
             s = f"A total of {self.refcount or 0} references were found. "
-            if top_n:
+            if top_n and top_references:
                 s += f"Top {top_n} references:\n\t"
                 s += "\n\t".join(top_references)
-
         return s
 
     def get_bibtex(self) -> str:
         """
-        Bibliographic entry in BibTeX format.
+        Return the bibliographic entry in BibTeX format.
 
         Raises
         ------
         ValueError
-            If the item's aggregationType is not Journal.
+            If the item's aggregation_type is not "Journal".
 
         """
-        if self.aggregationType != "Journal":
-            raise ValueError("Only Journal articles supported.")
-        # Item key
-        year = self.coverDate[0:4]
-        first = self.title.split()[0].title()
-        last = self.title.split()[-1].title()
-        key = "".join([self.authors[0].surname, year, first, last])
-        # Authors
-        authors = " and ".join([f"{a.given_name} {a.surname}" for a in self.authors])
-        # Pages
-        if self.pageRange:
-            pages = self.pageRange
-        elif self.startingPage:
-            pages = f"{self.startingPage}-{self.endingPage}"
+        if self.aggregation_type != "Journal":
+            error_msg = "Only Journal articles supported."
+            raise ValueError(error_msg)
+
+        year = (self.cover_date or "----")[:4]
+        authors_list = self.authors or []
+
+        title_str = self.title or "Unknown Title"
+        title_parts = title_str.split()
+
+        if not authors_list:
+            key_surname = "UnknownAuthor"
+        else:
+            key_surname = authors_list[0].surname or "Unknown"
+
+        key_title_first = title_parts[0].title() if title_parts else "UnknownFirst"
+        key_title_last = title_parts[-1].title() if title_parts else "UnknownLast"
+
+        key = "".join([key_surname, year, key_title_first, key_title_last])
+
+        authors_str = " and ".join(
+            [f"{a.given_name or ''} {a.surname or ''}".strip() for a in authors_list]
+        )
+
+        if self.page_range:
+            pages = self.page_range
+        elif self.starting_page and self.ending_page:
+            pages = f"{self.starting_page}-{self.ending_page}"
         else:
             pages = "-"
-        # All information
-        bib = (
-            f"@article{{{key},\n  author = {{{authors}}},\n  title = "
-            f"{{{{{self.title}}}}},\n  journal = {{{self.publicationName}}},"
-            f"\n  year = {{{year}}},\n  volume = {{{self.volume}}},\n  "
-            f"number = {{{self.issueIdentifier}}},\n  pages = {{{pages}}}"
-        )
-        # DOI
+
+        bib_journal = self.publication_name or ""
+        bib_title = self.title or ""
+        bib_volume = self.volume or ""
+        bib_issue = self.issue_identifier or ""
+
+        bib_parts = [
+            f"@article{{{key},",
+            f"  author = {{{authors_str}}},",
+            f"  title = {{{{{bib_title}}}}},",  # Double braces for BibTeX
+            f"  journal = {{{bib_journal}}},",
+            f"  year = {{{year}}},",
+            f"  volume = {{{bib_volume}}},",
+            f"  number = {{{bib_issue}}},",
+            f"  pages = {{{pages}}}",
+        ]
         if self.doi:
-            bib += f",\n  doi = {{{self.doi}}}"
-        bib += "}"
-        return bib
+            bib_parts.append(f",\n  doi = {{{self.doi}}}")
+        bib_parts.append("}")
+        return "\n".join(bib_parts)
 
     def get_html(self) -> str:
-        """Bibliographic entry in html format."""
-        # Author links
+        """Return the bibliographic entry in HTML format."""
         au_link = (
             '<a href="https://www.scopus.com/authid/detail.url'
             '?origin=AuthorProfile&authorId={0}">{1}</a>'
         )
-        if len(self.authors) > 1:
-            authors = ", ".join(
-                [
-                    au_link.format(a.auid, a.given_name + " " + a.surname)
-                    for a in self.authors[0:-1]
-                ]
+        authors_list = self.authors or []
+        if len(authors_list) > 1:
+            authors_str_parts = [
+                au_link.format(
+                    a.auid, f"{a.given_name or ''} {a.surname or ''}".strip()
+                )
+                for a in authors_list[:-1]
+            ]
+            authors_str = ", ".join(authors_str_parts)
+            last_author = authors_list[-1]
+            authors_str += " and " + au_link.format(
+                last_author.auid,
+                f"{last_author.given_name or ''!s} {last_author.surname or ''!s}".strip(),
             )
-            authors += " and " + au_link.format(
-                self.authors[-1].auid,
-                (
-                    str(self.authors[-1].given_name)
-                    + " "
-                    + str(self.authors[-1].surname)
-                ),
+        elif authors_list:  # len == 1
+            a = authors_list[0]
+            authors_str = au_link.format(
+                a.auid, f"{a.given_name or ''} {a.surname or ''}".strip()
             )
         else:
-            a = self.authors[0]
-            authors = au_link.format(a.auid, a.given_name + " " + a.surname)
-        title = f'<a href="{self.scopus_link}">{self.title}</a>'
-        if self.volume and self.issueIdentifier:
-            volissue = f"<b>{self.volume}({self.issueIdentifier})</b>"
+            authors_str = "(No author found)"
+
+        title_str = f'<a href="{self.scopus_link or ""}">{self.title or ""}</a>'
+
+        if self.volume and self.issue_identifier:
+            volissue = f"<b>{self.volume}({self.issue_identifier})</b>"
         elif self.volume:
             volissue = f"<b>{self.volume}</b>"
         else:
             volissue = "no volume"
+
         jlink = (
             '<a href="https://www.scopus.com/source/sourceInfo.url'
-            f'?sourceId={self.source_id}">{self.publicationName}</a>'
+            f'?sourceId={self.source_id or ""}">{self.publication_name or ""}</a>'
         )
-        s = (
-            f"{authors}, {title}, {jlink}, {volissue}, "
-            f"{_parse_pages(self, unicode=True)}, ({self.coverDate[:4]})."
-        )
+        html_parts = [
+            f"{authors_str}, ",
+            f"{title_str}, ",
+            f"{jlink}, ",
+            f"{volissue}, ",
+            f"{_parse_pages(self, unicode=True)}, ",
+            f"({(self.cover_date or '----')[:4]}).",
+        ]
+        s = "".join(html_parts)
         if self.doi:
             s += f' <a href="https://doi.org/{self.doi}">doi:{self.doi}</a>.'
         return s
 
     def get_latex(self) -> str:
-        """Bibliographic entry in LaTeX format."""
-        if len(self.authors) > 1:
-            authors = _list_authors(self.authors)
+        """Return the bibliographic entry in LaTeX format."""
+        authors_list = self.authors or []
+        if len(authors_list) > 1:
+            authors_str = _list_authors(authors_list)
+        elif authors_list:  # len == 1
+            a = authors_list[0]
+            authors_str = f"{a.given_name or ''} {a.surname or ''}".strip()
         else:
-            a = self.authors
-            authors = " ".join([a.given_name, a.surname])
-        if self.volume and self.issueIdentifier:
-            volissue = f"\\textbf{{{self.volume}({self.issueIdentifier})}}"
+            authors_str = "(No author found)"
+
+        if self.volume and self.issue_identifier:
+            volissue = f"\\textbf{{{self.volume}({self.issue_identifier})}}"
         elif self.volume:
             volissue = f"\\textbf{{{self.volume}}}"
         else:
             volissue = "no volume"
-        s = (
-            f"{authors}, \\textit{{{self.title}}}, {self.publicationName}, "
-            f"{volissue}, {_parse_pages(self)} ({self.coverDate[:4]})."
-        )
+
+        title_str = self.title or ""
+        pub_name_str = self.publication_name or ""
+        cover_date_year = (self.cover_date or "----")[:4]
+
+        s_parts = [
+            f"{authors_str}, \\textit{{{title_str}}}, {pub_name_str}, ",
+            f"{volissue}, {_parse_pages(self)} ({cover_date_year}).",
+        ]
+        s = "".join(s_parts)
         if self.doi:
             s += f" \\href{{https://doi.org/{self.doi}}}{{doi:{self.doi}}}, "
-        s += f"\\href{{{self.scopus_link}}}{{scopus:{self.eid}}}."
+        s += f"\\href{{{self.scopus_link or ''}}}{{scopus:{self.eid or ''}}}."
         return s
 
     def get_ris(self) -> str:
         """
-        Bibliographic entry in RIS (Research Information System Format)
-        format for journal articles.
+        Return the bibliographic entry in RIS format.
+
+        RIS stands for Research Information System Format.
+        For journal articles.
 
         Raises
         ------
         ValueError
-            If the item's aggregationType is not Journal.
+            If the item's aggregation_type is not "Journal".
 
         """
-        if self.aggregationType != "Journal":
-            raise ValueError("Only Journal articles supported.")
+        if self.aggregation_type != "Journal":
+            error_msg = "Only Journal articles supported."
+            raise ValueError(error_msg)
         # Basic information
         ris = (
-            f"TY  - JOUR\nTI  - {self.title}\nJO  - {self.publicationName}"
-            f"\nVL  - {self.volume}\nDA  - {self.coverDate}\n"
-            f"PY  - {self.coverDate[0:4]}\nSP  - {self.pageRange}\n"
+            f"TY  - JOUR\nTI  - {self.title or ''}\nJO  - {self.publication_name or ''}"
+            f"\nVL  - {self.volume or ''}\nDA  - {self.cover_date or ''}\n"
+            f"PY  - {(self.cover_date or '----')[:4]}\nSP  - {self.page_range or ''}\n"
         )
         # Authors
-        for au in self.authors:
-            ris += f"AU  - {au.indexed_name}\n"
+        authors_list = self.authors or []
+        for au in authors_list:
+            ris += f"AU  - {au.indexed_name or ''}\n"
         # DOI
         if self.doi:
             ris += f"DO  - {self.doi}\nUR  - https://doi.org/{self.doi}\n"
         # Issue
-        if self.issueIdentifier:
-            ris += f"IS  - {self.issueIdentifier}\n"
+        if self.issue_identifier:
+            ris += f"IS  - {self.issue_identifier}\n"
         ris += "ER  - \n\n"
         return ris
 
 
-def _get_org(aff):
+def _get_org(aff: dict) -> str | None:
     """
-    Auxiliary function to extract org information from affiliation
-    for authorgroup.
+    Extract organization information from affiliation for authorgroup.
+
+    :param aff: The affiliation dictionary.
+    :return: The organization string or None.
     """
     try:
         org = aff["organization"]
@@ -1044,29 +1171,54 @@ def _get_org(aff):
     return org
 
 
-def _list_authors(lst):
-    """Format a list of authors (Surname, Firstname and Firstname Surname)."""
-    authors = ", ".join([" ".join([a.given_name, a.surname]) for a in lst[0:-1]])
-    authors += " and " + " ".join([lst[-1].given_name, lst[-1].surname])
-    return authors
+def _list_authors(author_list: list) -> str:
+    """
+    Format a list of authors (Surname, Firstname and Firstname Surname).
+
+    :param author_list: A list of author namedtuples.
+    :return: A formatted string of authors.
+    """
+    if not author_list:
+        return ""
+    if len(author_list) == 1:
+        a = author_list[0]
+        return f"{a.given_name or ''} {a.surname or ''}".strip()
+
+    authors_head = ", ".join(
+        [f"{a.given_name or ''} {a.surname or ''}".strip() for a in author_list[:-1]]
+    )
+    last_author = author_list[-1]
+    return f"{authors_head} and {last_author.given_name or ''} {last_author.surname or ''}".strip()
 
 
-def _parse_pages(self, unicode=False):
-    """Auxiliary function to parse and format page range of a document."""
-    if self.pageRange:
-        pages = f"pp. {self.pageRange}"
-    elif self.startingPage:
-        pages = f"pp. {self.startingPage}-{self.endingPage}"
+def _parse_pages(retrieval_obj: AbstractRetrieval, *, unicode: bool = False) -> str:
+    """
+    Parse and format page range of a document.
+
+    :param retrieval_obj: The AbstractRetrieval instance.
+    :param unicode: Whether to return unicode string.
+    :return: The formatted page string.
+    """
+    if retrieval_obj.page_range:
+        pages = f"pp. {retrieval_obj.page_range}"
+    elif retrieval_obj.starting_page and retrieval_obj.ending_page:
+        pages = f"pp. {retrieval_obj.starting_page}-{retrieval_obj.ending_page}"
     else:
         pages = "(no pages found)"
     if unicode:
-        pages = f"{pages}"
+        pages = f"{pages}"  # No specific unicode formatting, just returns the string.
     return pages
 
 
-def _select_by_idtype(lst, id_type):
-    """Auxiliary function to return items matching a special idtype."""
+def _select_by_idtype(item_list: list, id_type: str) -> str | None:
+    """
+    Return items matching a special idtype.
+
+    :param item_list: A list of items (dictionaries) to search.
+    :param id_type: The idtype to match (e.g., "DOI", "SGR").
+    :return: The matching item's value or None.
+    """
     try:
-        return [d["$"] for d in lst if d["@idtype"] == id_type][0]
-    except IndexError:
+        return next(d["$"] for d in item_list if d["@idtype"] == id_type)
+    except (IndexError, StopIteration):  # StopIteration if generator is empty
         return None
