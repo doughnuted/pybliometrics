@@ -1,3 +1,4 @@
+# ruff: noqa
 """Tests for sciencedirect.ArticleRetrieval."""
 
 from collections import namedtuple
@@ -172,7 +173,7 @@ def test_openaccessUserLicense():
 
 
 def test_originalText():
-    ar_full_test_originalText = "    ar_full_test_original_text = (
+    ar_full_test_originalText = (
         "c and Kuźnar, 2021). By analyzing data from multiple sources, "
         "including social media, news feeds, and sensor data, ANNs can "
         "provide early warnings and recommend proactive measures to mitigate "
@@ -204,7 +205,7 @@ def test_originalText():
         "and analyzing data from production processes and quality inspections, "
         "ANNs can help in early detection and mitigation of quality-related "
         "risks (Cai et a... [truncated]"
-    )"
+    )
     assert ar_full.originalText[-80000:-78000] == ar_full_test_originalText
 
 
@@ -361,7 +362,7 @@ def test_volume():
 def test_str_magic() -> None:
     expected = (
         "Mohsen Soori, Behrooz Arezoo and Roza Dastres: "
-        "\"Artificial neural networks in supply chain management, a review\", "
+        '"Artificial neural networks in supply chain management, a review", '
         "Journal of Economy and Technology, 1, pp. 179-196(2023). "
         "https://doi.org/10.1016/j.ject.2023.11.002."
     )
