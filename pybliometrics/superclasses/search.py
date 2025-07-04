@@ -1,17 +1,21 @@
 """Superclass to access all Scopus search APIs and dump the results."""
 
+from __future__ import annotations
+
 from hashlib import md5
 from pathlib import Path
-from typing import Union
 
 from pybliometrics.superclasses import Base
 from pybliometrics.utils import COUNTS, URLS, get_config
 
 
 class Search(Base):
+    """Superclass for search-style API endpoints."""
+
     def __init__(
         self,
-        query: Union[str, dict],
+        query: str | dict,
+        *,
         cursor: bool = False,
         download: bool = True,
         verbose: bool = False,

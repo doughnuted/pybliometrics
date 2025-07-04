@@ -1,3 +1,5 @@
+"""Constant definitions used throughout the package."""
+
 from pathlib import Path
 
 # Location of configuration file with legacy support

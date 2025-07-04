@@ -1,6 +1,10 @@
-from typing import Type
+"""HTTP utilities for downloading content from the Elsevier APIs."""
 
-from requests import Session
+from __future__ import annotations
+
+import contextlib
+
+from requests import Response, Session
 from requests.adapters import HTTPAdapter
 from requests.exceptions import JSONDecodeError
 from urllib3.util import Retry
@@ -27,9 +31,13 @@ errors = {
     429: exception.Scopus429Error,
 }
 
+PII_LENGTH_MIN = 16
+PII_LENGTH_MAX = 17
+PUBMED_ID_MAX_LENGTH = 10
 
-def get_session() -> Type[Session]:
-    """Auxiliary function to create a session"""
+
+def get_session() -> Session:
+    """Auxiliary function to create a session."""
     config = get_config()
 
     _retries = config.getint("Requests", "Retries", fallback=5)
@@ -45,9 +53,15 @@ def get_session() -> Type[Session]:
     return session
 
 
-def get_content(url, api, params=None, **kwds):
+def get_content(  # noqa: PLR0912,PLR0915
+    url: str,
+    api: str,
+    params: dict | None = None,
+    **kwds: str,
+
+) -> Response:
     """
-    Helper function to download a file and return its content.
+    Return the API response content.
 
     Parameters
     ----------
@@ -99,7 +113,7 @@ def get_content(url, api, params=None, **kwds):
 
     params = params or {}
     params.update(**kwds)
-    proxies = dict(config._sections.get("Proxy", {}))
+    proxies = dict(config._sections.get("Proxy", {}))  # noqa: SLF001
     timeout = config.getint("Requests", "Timeout", fallback=20)
 
     # Get keys/tokens and create header
@@ -122,10 +136,8 @@ def get_content(url, api, params=None, **kwds):
 
     # Eventually wait bc of throttling
     if len(_throttling_params[api]) == _throttling_params[api].maxlen:
-        try:
+        with contextlib.suppress(IndexError, ValueError):
             sleep(1 - (time() - _throttling_params[api][0]))
-        except (IndexError, ValueError):
-            pass
 
     # Use insttoken if available
     if insttoken:
@@ -137,7 +149,7 @@ def get_content(url, api, params=None, **kwds):
         )
 
     # If 429 try other tokens
-    while (resp.status_code == 429) or (resp.status_code == 401):
+    while resp.status_code in {429, 401}:
         try:
             token_key, token = insttokens.pop(0)  # Get and remove current key
             header["X-ELS-APIKey"] = token_key
@@ -151,7 +163,7 @@ def get_content(url, api, params=None, **kwds):
     header.pop("X-ELS-Insttoken", None)
 
     # If 429 try other keys
-    while (resp.status_code == 429) or (resp.status_code == 401):
+    while resp.status_code in {429, 401}:
         try:
             key = keys.pop(0)  # Remove current key
             header["X-ELS-APIKey"] = key
@@ -172,7 +184,7 @@ def get_content(url, api, params=None, **kwds):
         except KeyError:
             try:
                 reason = resp.json()["message"]
-            except Exception:
+            except Exception:  # noqa: BLE001
                 reason = ""
         raise error_type(reason)
     except (JSONDecodeError, KeyError):
@@ -180,9 +192,9 @@ def get_content(url, api, params=None, **kwds):
     return resp
 
 
-def detect_id_type(sid):
+def detect_id_type(sid: str) -> str:
     """
-    Method that tries to infer the type of abstract ID.
+    Infer the type of an abstract ID.
 
     Parameters
     ----------
@@ -202,17 +214,18 @@ def detect_id_type(sid):
     """
     sid = str(sid)
     if not sid.isnumeric():
-        if sid.startswith("1-s2.0-") or sid.startswith("2-s2.0-"):
+        if sid.startswith(("1-s2.0-", "2-s2.0-")):
             id_type = "eid"
         elif "/" in sid or "." in sid:
             id_type = "doi"
-        elif 16 <= len(sid) <= 17:
+        elif PII_LENGTH_MIN <= len(sid) <= PII_LENGTH_MAX:
             id_type = "pii"
-    elif len(sid) < 10:
+    elif len(sid) < PUBMED_ID_MAX_LENGTH:
         id_type = "pubmed_id"
     else:
         id_type = "scopus_id"
     try:
         return id_type
     except UnboundLocalError:
-        raise ValueError(f'ID type detection failed for "{sid}".')
+        msg = f'ID type detection failed for "{sid}".'
+        raise ValueError(msg) from None

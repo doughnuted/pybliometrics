@@ -1,6 +1,16 @@
 """Tests for sciencedirect.ArticleEntitlement."""
 
+import os
+
+import pytest
+
 from pybliometrics.sciencedirect import ArticleEntitlement, init
+
+if not os.environ.get("PYBLIOMETRICS_API_KEY"):
+    pytest.skip(
+        "Skipping network tests: API key not set",
+        allow_module_level=True,
+    )
 
 init()
 

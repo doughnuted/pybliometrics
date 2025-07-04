@@ -1,14 +1,19 @@
-import os
+"""Sphinx configuration for building the documentation."""
+
+from __future__ import annotations
+
 import sys
-from datetime import date
+from datetime import datetime
+from pathlib import Path
 
-sys.path.append(os.path.join(os.path.abspath(os.pardir)))
+import pybliometrics
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 autodoc_mock_imports = ["_tkinter"]
-
-cwd = os.getcwd()
-project_root = os.path.dirname(cwd)
-sys.path.insert(0, os.path.abspath("source"))
-sys.path.insert(0, project_root)
+cwd = Path.cwd()
+project_root = cwd.parent
+sys.path.insert(0, str(Path("source").resolve()))
+sys.path.insert(0, str(project_root))
 
 # General configuration
 extensions = [
@@ -29,9 +34,9 @@ source_suffix = ".rst"
 master_doc = "index"
 project = "pybliometrics"
 author = "Michael E. Rose and John Kitchin"
-import pybliometrics
 
-copyright = f"2017-{date.today().year} {author}"
+year = datetime.now(tz=datetime.now().astimezone().tzinfo).date().year
+COPYRIGHT = f"2017-{year} {author}"
 version = pybliometrics.__version__
 
 language = "en"
@@ -79,20 +84,7 @@ rst_prolog = (
 )
 
 # -- Options for LaTeX output ---------------------------------------------
-latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #
-    # 'papersize': 'letterpaper',
-    # The font size ('10pt', '11pt' or '12pt').
-    #
-    # 'pointsize': '10pt',
-    # Additional stuff for the LaTeX preamble.
-    #
-    # 'preamble': '',
-    # Latex figure (float) alignment
-    #
-    # 'figure_align': 'htbp',
-}
+latex_elements = {}
 
 latex_documents = [
     (master_doc, "pybliometrics.tex", "pybliometrics Documentation", author, "manual"),

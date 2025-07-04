@@ -1,8 +1,11 @@
+"""Startup utilities for configuration and authentication management."""
+
+from __future__ import annotations
+
 import warnings
 from collections import deque
 from configparser import ConfigParser, NoOptionError, NoSectionError
 from pathlib import Path
-from typing import Optional, Type, Union
 
 from pybliometrics.utils.constants import CONFIG_FILE, DEFAULT_PATHS, RATELIMITS, VIEWS
 from pybliometrics.utils.create_config import create_config
@@ -15,21 +18,23 @@ _throttling_params = {k: deque(maxlen=v) for k, v in RATELIMITS.items()}
 
 
 def init(
-    config_path: Union[str, Path] = None,
-    keys: Optional[list[str]] = None,
-    inst_tokens: Optional[list[str]] = None,
-    config_dir: Union[str, Path] = None,
+    config_path: str | Path | None = None,
+    keys: list[str] | None = None,
+    inst_tokens: list[str] | None = None,
+    config_dir: str | Path | None = None,
 ) -> None:
     """
-    Function to initialize the pybliometrics library. For more information refer to the
-    `official documentation <https://pybliometrics.readthedocs.io/en/stable/configuration.html>`_.
+    Initialize the pybliometrics library.
 
-    :param config_path: Path to the configuration file.  If None, defaults to
-                        pybliometrics.utils.constants.CONFIG_FILE.
+    For details see the `official documentation <https://pybliometrics.readthedocs.io/en/stable/configuration.html>`_.
+
+    :param config_path: Path to the configuration file. Defaults to
+        pybliometrics.utils.constants.CONFIG_FILE.
     :param keys: List of API keys.
-    :param inst_tokens: List of corresponding InstTokens. The order must match that
-                        of `keys` to avoid errors.
-    :param config_dir: (Deprecated) Path to the configuration file. Use `config_path` instead.
+    :param inst_tokens: List of corresponding InstTokens. The order must match
+        that of ``keys``.
+    :param config_dir: (Deprecated) Path to the configuration file. Use
+        ``config_path`` instead.
 
     :raises NoSectionError: If the required sections (Directories, Authentication, Request)
                             do not exist.
@@ -69,14 +74,14 @@ def init(
     check_keys_tokens()
 
 
-def check_sections(config: Type[ConfigParser]) -> None:
+def check_sections(config: ConfigParser) -> None:
     """Auxiliary function to check if all sections exist."""
     for section in ["Directories", "Authentication", "Requests"]:
         if not config.has_section(section):
             raise NoSectionError(section)
 
 
-def check_default_paths(config: Type[ConfigParser], config_path: Path) -> None:
+def check_default_paths(config: ConfigParser, config_path: Path) -> None:
     """
     Auxiliary function to check if default cache paths exist.
     If not, the paths are writen in the config.
@@ -98,31 +103,29 @@ def check_keys_tokens() -> None:
     keys_and_insttokens = keys and insttokens
     keys_tokens_diff = len(keys) - len(insttokens)
 
+    doc_link = "https://pybliometrics.readthedocs.io/en/stable/configuration.html"
     if no_keys_no_insttokens:
         raise ValueError(
             "No API keys or InstTokens found. "
             "Please provide at least one API key or InstToken. "
-            "For more information visit: "
-            "https://pybliometrics.readthedocs.io/en/stable/configuration.html"
+            f"For more information visit: {doc_link}"
         )
     if insttokens_no_keys:
         raise ValueError(
             "InstTokens found but not corresponding API keys. "
             "Please provide the API keys that correspond to the InstTokens. "
-            "For more information visit: "
-            "https://pybliometrics.readthedocs.io/en/stable/configuration.html"
+            f"For more information visit: {doc_link}"
         )
     if keys_and_insttokens:
         if keys_tokens_diff < 0:
             raise ValueError(
                 "More InstTokens than API keys found. "
                 "Please provide all the API keys that correspond to the InstTokens. "
-                "For more information visit: "
-                "https://pybliometrics.readthedocs.io/en/stable/configuration.html"
+                f"For more information visit: {doc_link}"
             )
 
 
-def create_cache_folders(config: Type[ConfigParser]) -> None:
+def create_cache_folders(config: ConfigParser) -> None:
     """Auxiliary function to create cache folders."""
     for api, path in config.items("Directories"):
         for view in VIEWS[api]:
@@ -130,7 +133,7 @@ def create_cache_folders(config: Type[ConfigParser]) -> None:
             view_path.mkdir(parents=True, exist_ok=True)
 
 
-def get_config() -> Type[ConfigParser]:
+def get_config() -> ConfigParser:
     """Function to get the config parser."""
     if not CONFIG:
         raise FileNotFoundError(
